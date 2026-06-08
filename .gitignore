@@ -12,3 +12,8 @@ datasets/
 
 # macOS
 .DS_Store
+
+# Byte-compiled / optimized files
+__pycache__/
+*.py[cod]
+*$py.class
