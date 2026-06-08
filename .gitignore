@@ -1,1 +1,14 @@
+# FITS files
 *.fits
+
+# HDF5
+*.h5
+*.hdf5
+
+# Large data directories
+30mas/
+data/
+datasets/
+
+# macOS
+.DS_Store
