@@ -105,7 +105,7 @@ def make_rgb_from_matched_catalog(red_dir, green_dir, blue_dir, output_dir,
         galaxy_id = matched_catalog[id_col][idx]
         
         # Construct file paths for each filter
-        # Note: Adjust the filename pattern to match your actual naming convention
+        # Note: Adjust the filename pattern to match file's actual naming convention
         red_file = os.path.join(red_dir, f"candels.{galaxy_id}.f160w.fits")
         green_file = os.path.join(green_dir, f"candels.{galaxy_id}.f125w.fits")
         blue_file = os.path.join(blue_dir, f"candels.{galaxy_id}.f606w.fits")
@@ -127,20 +127,20 @@ def make_rgb_from_matched_catalog(red_dir, green_dir, blue_dir, output_dir,
         green_data = np.nan_to_num(green_data, nan=0.0, posinf=0.0, neginf=0.0)
         blue_data = np.nan_to_num(blue_data, nan=0.0, posinf=0.0, neginf=0.0)
         
-        # Clip negative values to zero (flux should be non-negative)
-        red_data = np.maximum(red_data, 0)
-        green_data = np.maximum(green_data, 0)
-        blue_data = np.maximum(blue_data, 0)
+        # Clip negative values to zero (flux should be non-negative). Uncomment this after checking the effect on the data
+        # red_data = np.maximum(red_data, 0)
+        # green_data = np.maximum(green_data, 0)
+        # blue_data = np.maximum(blue_data, 0)
         
         # Optional: Clip extreme outliers to prevent scaling issues
         # This removes the brightest 0.5% of pixels
-        vmax_r = np.percentile(red_data, 99.5)
-        vmax_g = np.percentile(green_data, 99.5)
-        vmax_b = np.percentile(blue_data, 99.5)
+        # vmax_r = np.percentile(red_data, 99.5)
+        # vmax_g = np.percentile(green_data, 99.5)
+        # vmax_b = np.percentile(blue_data, 99.5)
         
-        red_data = np.clip(red_data, 0, vmax_r)
-        green_data = np.clip(green_data, 0, vmax_g)
-        blue_data = np.clip(blue_data, 0, vmax_b)
+        # red_data = np.clip(red_data, 0, vmax_r)
+        # green_data = np.clip(green_data, 0, vmax_g)
+        # blue_data = np.clip(blue_data, 0, vmax_b)
         
         # Make RGB using Lupton's asinh scaling
         rgb_array = make_lupton_rgb(red_data, green_data, blue_data, 
@@ -209,10 +209,10 @@ def test_small_sample(catalog, sample_size=10):
 
 
 if __name__ == "__main__":
-    # Set up for testing the code:
+    # Set up for testing the code for files stored on the SMB server:
     # First connect to colby smb serve and login so that the drive mounts to /Volumes/Research/
 
-    BASE_MOUNT = "/Volumes/Research/emcgrath/Research/CANDELS_data/mosaics/gds/"
+    BASE_MOUNT = "/Volumes/Research/emcgrath/Research/CANDELS_data/mosaics/gds/" # This is readable by Python
 
     # Input data paths
     MAIN_CATALOG_PATH = "/Users/holyphysics/Desktop/Galaxy_Classification/gds_merged_v1.1.fits"
