@@ -15,8 +15,8 @@ from astropy.coordinates import SkyCoord, match_coordinates_sky
 match_catalogue.py
 Module for matching astronomical catalogs by RA/Dec coordinates.
 
-This module takes a main catalog (e.g., CANDELS GOODS-S) and a reference catalog
-(e.g., Galaxy Zoo CANDELS) and returns a matched catalog containing only galaxies
+This module takes a main catalog (for example, CANDELS GOODS-S) and a reference catalog
+(for example, Galaxy Zoo CANDELS) and returns a matched catalog containing only galaxies
 found in both with reliable coordinates.
 
 Purpose:
@@ -36,11 +36,11 @@ def catalogue_matcher(main_catalog_path, ref_catalog_path, field_filter='GDS',
     Parameters
     ----------
     main_catalog_path : str
-        Path to the main catalog FITS file (e.g., CANDELS GOODS-S catalog)
+        Path to the main catalog FITS file (for example, CANDELS GOODS-S catalog)
     ref_catalog_path : str
-        Path to the reference catalog FITS file (e.g., Galaxy Zoo CANDELS catalog)
+        Path to the reference catalog FITS file (for example, Galaxy Zoo CANDELS catalog)
     field_filter : str, optional
-        String to filter reference catalog IDs (e.g., 'GDS' for GOODS-S, 'UDS' for UDS)
+        String to filter reference catalog IDs (for example, 'GDS' for GOODS-S, 'UDS' for UDS)
         Default is 'GDS' for GOODS-S field
     max_separation : float, optional
         Maximum angular separation in arcseconds for a valid match
@@ -141,7 +141,7 @@ def catalogue_matcher(main_catalog_path, ref_catalog_path, field_filter='GDS',
     #     print(f" Added Galaxy Zoo vote fractions to catalog")
     # else:
     #     print(f" Warning: Expected Galaxy Zoo columns not found")
-    #     print(f" Available columns: {matched_ref.colnames}")
+    #     print(f" Available columns: {matched_ref.colnames}") #Uncomment when absolutely necessary for debugging
     
     
     
@@ -156,12 +156,12 @@ def catalogue_matcher(main_catalog_path, ref_catalog_path, field_filter='GDS',
     # print(f" - Galaxy Zoo vote fractions added as columns")
     print(f" - Match separation: min={np.min(matched_catalog['match_separation_arcsec']):.2f} arcsec, "
           f"max={np.max(matched_catalog['match_separation_arcsec']):.2f} arcsec")
-    print(f"\n {matched_catalog.colnames} ")
+    # print(f"\n {matched_catalog.colnames} ")
     
     # Save the matched catalog (this is entirely optional, but I like it)
     if save_output:
         matched_catalog.write(output_filename, overwrite=True)
-        print(f"\n Saved matched catalog to: {output_filename}")
+        print(f"\n Saved matched catalog to: {output_filename}") #Uncomment when absolutely necessary for debugging
     
     return matched_catalog
 
