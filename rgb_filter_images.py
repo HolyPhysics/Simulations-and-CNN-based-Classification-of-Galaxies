@@ -152,11 +152,11 @@ def make_rgb_from_matched_catalog(red_dir, green_dir, blue_dir, output_dir,
         rgb_paths.append(output_path)
         
         # Save morphology label in companion file for CNN training
-        if 'morphology' in matched_catalog.colnames:
-            morphology = matched_catalog['morphology'][idx]
-            label_file = output_path.replace('.png', '_label.txt')
-            with open(label_file, 'w') as f:
-                f.write(morphology)
+        # if 'morphology' in matched_catalog.colnames:
+        #     morphology = matched_catalog['morphology'][idx]
+        #     label_file = output_path.replace('.png', '_label.txt')
+        #     with open(label_file, 'w') as f:
+        #         f.write(morphology)
         
         successful += 1
         
