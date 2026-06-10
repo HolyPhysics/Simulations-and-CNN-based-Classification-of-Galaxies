@@ -20,11 +20,12 @@ from astropy.coordinates import SkyCoord
 import numpy as np
 import astropy.units as u
 import os
+from typing import Tuple, List
 
 
 
-def make_filter_cutouts(catalog, image_path, band, output_dir, box_radius=300, 
-                        rootname="candels", prefix="", suffix="") -> list[ list[string,...] , int]: # I'm probably making some mistake in the type annotation but I'll digress...
+def make_filter_cutouts(catalog, image_path, band, output_dir, box_radius=212, 
+                        rootname="candels", prefix="", suffix="") -> Tuple[ List[str] , int]: # I'm probably making some mistake in the type annotation but I'll digress...
     """
     Create thumbnail cutouts for all galaxies in a catalog from a single filter image.
     
@@ -175,7 +176,7 @@ def make_filter_cutouts(catalog, image_path, band, output_dir, box_radius=300,
         
         # Check if galaxy falls within image bounds(the mosiac)
         if (x_pixel < 0 or x_pixel >= nx or y_pixel < 0 or y_pixel >= ny):
-            print(f" kipping galaxy {galaxy_id}: outside image bounds")
+            print(f" Skipping galaxy {galaxy_id}: outside image bounds")
             skipped_outside += 1
             continue
 

@@ -10,6 +10,7 @@ import matplotlib as mpl
 mpl.rcParams['savefig.dpi'] = 90
 mpl.rcParams['figure.dpi'] = 90
 from astropy.coordinates import SkyCoord, match_coordinates_sky
+from typing import List # For proper type annotation
 
 """
 match_catalogue.py
@@ -27,9 +28,9 @@ Purpose:
 """
 
 
-
+#  max_separation should not be greater than 2
 def catalogue_matcher(main_catalog_path, ref_catalog_path, field_filter='GDS', 
-                      max_separation=0.5, save_output=True, output_filename="matched_catalog.fits"):
+                      max_separation=1, save_output=True, output_filename="matched_catalog.fits") -> List[str]:
     """
     Match a main catalog against a reference catalog using RA/Dec positions.
     

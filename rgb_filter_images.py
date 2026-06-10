@@ -16,26 +16,6 @@ Match catalogue by RA/Dec to get a consistent list of galaxies to work with
 '''
 
 # Begin by importing all required modules into this file
-from match_catalogue import catalogue_matcher
-from filter_cutouts import make_filter_cutouts
-from astropy.visualization import make_lupton_rgb
-import matplotlib.pyplot as plt
-import os
-
-"""
-Main workflow for creating RGB images from multi-filter cutouts.
-
-This script orchestrates the complete pipeline:
-1. Match catalogs to get clean galaxy list with morphology labels
-2. Create cutouts for R, G, B filters
-3. Combine cutouts into RGB PNG images
-4. Save labels for CNN training
-
-Workflow:
-    Input:  Raw CANDELS FITS images + Galaxy Zoo catalog
-    Output: RGB PNG images + label files for each galaxy
-"""
-
 from astropy.io import fits
 from astropy.table import Table
 from astropy.visualization import make_lupton_rgb
@@ -44,10 +24,20 @@ from filter_cutouts import make_filter_cutouts
 import matplotlib.pyplot as plt
 import numpy as np
 import os
+from typing import List # For proper type annotation
+
+"""
+Main workflow for creating RGB images from multi-filter cutouts.
+
+Workflow:
+    Input:  Raw CANDELS FITS images + Galaxy Zoo catalog
+    Output: RGB PNG images + label files for each galaxy
+"""
+
 
 
 def make_rgb_from_matched_catalog(red_dir, green_dir, blue_dir, output_dir, 
-                                  matched_catalog, stretch=5, Q=8):
+                                  matched_catalog, stretch=0.5, Q=10) -> List[str]:
     """
     Create RGB images from filter cutouts for galaxies in matched catalog.
     
@@ -117,15 +107,15 @@ def make_rgb_from_matched_catalog(red_dir, green_dir, blue_dir, output_dir,
                 print(f"  Missing files for galaxy {galaxy_id}, skipping...")
             continue
         
-        # Load FITS data
+        # Load FITS data. Coverts the .fits files into numpy arrays.
         red_data = fits.getdata(red_file)
         green_data = fits.getdata(green_file)
         blue_data = fits.getdata(blue_file)
         
         # Clean the data (remove NaNs, infinities, negative values)
-        red_data = np.nan_to_num(red_data, nan=0.0, posinf=0.0, neginf=0.0)
+        red_data = 4/3*np.nan_to_num(red_data, nan=0.0, posinf=0.0, neginf=0.0)
         green_data = np.nan_to_num(green_data, nan=0.0, posinf=0.0, neginf=0.0)
-        blue_data = np.nan_to_num(blue_data, nan=0.0, posinf=0.0, neginf=0.0)
+        blue_data = 4/3*np.nan_to_num(blue_data, nan=0.0, posinf=0.0, neginf=0.0)
         
         # Clip negative values to zero (flux should be non-negative). Uncomment this after checking the effect on the data
         # red_data = np.maximum(red_data, 0)
@@ -174,7 +164,7 @@ def make_rgb_from_matched_catalog(red_dir, green_dir, blue_dir, output_dir,
     return rgb_paths
 
 
-def test_small_sample(catalog, sample_size=10):
+def test_small_sample(catalog, sample_size=5):
     """
     Extract a small sample of galaxies for testing.
     
@@ -243,7 +233,7 @@ if __name__ == "__main__":
     
     # Testing parameters
     TEST_MODE = True           # Set to False for full run
-    TEST_SAMPLE_SIZE = 100      # Number of galaxies to test with
+    TEST_SAMPLE_SIZE = 5      # Number of galaxies to test with
     
     # Match catalogues and add morphology labels
     print(" Matching cataogues")
