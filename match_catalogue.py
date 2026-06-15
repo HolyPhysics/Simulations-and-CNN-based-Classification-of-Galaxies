@@ -32,7 +32,8 @@ Purpose:
 def catalogue_matcher(main_catalog_path, ref_catalog_path, field_filter='GDS', 
                       max_separation=1, save_output=True, output_filename="matched_catalog.fits") -> List[str]:
     """
-    Match a main catalog against a reference catalog using RA/Dec positions.
+    Match a main catalog against a reference catalog using RA/Dec positions according to 
+    a specified observation field( "GDS", "UDS", "COS")
     
     Parameters
     ----------
@@ -41,7 +42,11 @@ def catalogue_matcher(main_catalog_path, ref_catalog_path, field_filter='GDS',
     ref_catalog_path : str
         Path to the reference catalog FITS file (for example, Galaxy Zoo CANDELS catalog)
     field_filter : str, optional
-        String to filter reference catalog IDs (for example, 'GDS' for GOODS-S, 'UDS' for UDS)
+        String to filter reference catalog IDs by field:
+        - 'GDS' for GOODS-S (Great Observatories Deep Survey - South)
+        - 'UDS' for UDS (Ultra Deep Survey)
+        - 'COS' for COSMOS (Cosmic Evolution Survey)
+        - None or '' for no filter (use all galaxies)
         Default is 'GDS' for GOODS-S field
     max_separation : float, optional
         Maximum angular separation in arcseconds for a valid match
@@ -68,7 +73,11 @@ def catalogue_matcher(main_catalog_path, ref_catalog_path, field_filter='GDS',
     print(f"\n Loading reference catalog from: {ref_catalog_path}")
     ref_catalog = Table.read(ref_catalog_path)
     print(f" Reference catalog has {len(ref_catalog)} galaxies")
-    
+
+    # print(f"\n { True if 't00_smooth_or_featured_a0_smooth_weighted_frac' in ref_catalog.colnames else False }, 't00_smooth_or_featured_a0_smooth_weighted_frac' is in reference catalog \n")
+    # The commented-out code above confirms that the required classification features are present and so can be extracted
+    # We will now extract these features below
+
     # Filter reference catalog to specific field if requested
     if field_filter:
         print("\n Field specific filtering by UDS is needed.")
@@ -128,21 +137,46 @@ def catalogue_matcher(main_catalog_path, ref_catalog_path, field_filter='GDS',
     
 
 
-    # # Create the matched catalog with morphology labels
-    # print("\n Creating matched catalog...")
-    # # Add morphology labels from reference catalog
-    # # Note: This adds the raw vote fractions - this needs to be converted to classes separately
-    # if 't00_smooth_or_featured_a0_smooth_weighted_frac' in matched_ref.colnames:
-    #     matched_catalog['gz_smooth_frac'] = matched_ref['t00_smooth_or_featured_a0_smooth_weighted_frac']
-    #     matched_catalog['gz_features_frac'] = matched_ref['t00_smooth_or_featured_a1_features_weighted_frac']
-    #     matched_catalog['gz_spiral_frac'] = matched_ref['t12_spiral_pattern_a0_yes_weighted_frac']
-    #     matched_catalog['gz_irregular_frac'] = matched_ref['t04_clump_configuration_a2_cluster_or_irregular_weighted_frac']
-    #     matched_catalog['gz_id'] = matched_ref['ID']
+    # Create the matched catalog with morphology labels
+    print("\n Creating matched catalog...")
+    # Add morphology labels from reference catalog
+    # Note: This adds the raw vote fractions - this needs to be converted to classes separately
+    if 't00_smooth_or_featured_a0_smooth_weighted_frac' in matched_ref.colnames:
+        matched_catalog['gz_smooth_frac'] = matched_ref['t00_smooth_or_featured_a0_smooth_weighted_frac']
+        matched_catalog['gz_features_frac'] = matched_ref['t00_smooth_or_featured_a1_features_weighted_frac']
+        matched_catalog['gz_spiral_frac'] = matched_ref['t12_spiral_pattern_a0_yes_weighted_frac']
+        matched_catalog['gz_irregular_frac'] = matched_ref['t04_clump_configuration_a2_cluster_or_irregular_weighted_frac']
+        matched_catalog['gz_id'] = matched_ref['ID']
+
+        # galaxy_id = None
+
+        # for possible_id in ["ID", "id", "Id"]: # Extracts the non_galaxy_zoo_id
+        #     if possible_id in matched_catalog.colnames:
+        #         galaxy_id = possible_id
+
+
+        # matched_catalog[f"{galaxy_id}"] = matched_catalog[f"{galaxy_id}"].astype(str) # This converts the entire target column to a Unicode string type before we start changing the ID
+        # # THis would throw up and error if not done before changing the values
+
+        # # print('\n Before: ')
+        # # print( matched_catalog[f'{galaxy_id}'] )
+
         
-    #     print(f" Added Galaxy Zoo vote fractions to catalog")
-    # else:
-    #     print(f" Warning: Expected Galaxy Zoo columns not found")
-    #     print(f" Available columns: {matched_ref.colnames}") #Uncomment when absolutely necessary for debugging
+        # for numbered_id in range( len(matched_catalog) ): ## This helps us renumbers the galaxies by their field
+        #     non_galaxy_zoo_id = f"{field_filter}_{matched_catalog[f'{galaxy_id}'][numbered_id]}"
+        #     matched_catalog[f'{galaxy_id}'][numbered_id] = non_galaxy_zoo_id
+
+        
+        # # print("\n After: ")
+        # # print( matched_catalog['ID'] )
+
+
+        
+        print(f" Added Galaxy Zoo vote fractions to catalog")
+        # print(f" Available columns: { matched_catalog["gz_id"] }") #Uncomment when absolutely necessary for debugging
+    else:
+        print(f" Warning: Expected Galaxy Zoo columns not found")
+        print(f" Available columns: {matched_ref.colnames}") #Uncomment when absolutely necessary for debugging
     
     
     
@@ -167,75 +201,6 @@ def catalogue_matcher(main_catalog_path, ref_catalog_path, field_filter='GDS',
     return matched_catalog
 
 
-# I need this for labelling the galaxies for classification
-# def add_morphology_classes(catalog, smooth_threshold=0.6, features_threshold=0.5, 
-#                            spiral_threshold=0.5, irregular_threshold=0.5):
-#     """
-#     Convert Galaxy Zoo vote fractions into morphology classes.
-    
-#     Parameters
-#     ----------
-#     catalog : astropy.table.Table
-#         Catalog containing Galaxy Zoo vote fraction columns
-#     smooth_threshold : float, optional
-#         Threshold for classifying as elliptical (smooth fraction > this)
-#     features_threshold : float, optional
-#         Threshold for classifying as spiral (features fraction > this)
-#     spiral_threshold : float, optional
-#         Threshold for spiral arm confirmation
-#     irregular_threshold : float, optional
-#         Threshold for irregular classification
-    
-#     Returns
-#     -------
-#     catalog : astropy.table.Table
-#         Input catalog with added 'morphology' and 'morphology_clean' columns
-#     """
-    
-#     print("\nAdding morphology classifications...")
-    
-#     # Initialize morphology column
-#     morphology = []
-#     clean_flags = []
-    
-#     for i in range(len(catalog)):
-#         smooth = catalog['gz_smooth_frac'][i]
-#         features = catalog['gz_features_frac'][i]
-#         spiral = catalog['gz_spiral_frac'][i]
-#         irregular = catalog['gz_irregular_frac'][i]
-        
-#         # Classify based on vote thresholds
-#         if smooth > smooth_threshold and features < features_threshold:
-#             morph = "Elliptical"
-#             clean = True
-#         elif features > features_threshold and spiral > spiral_threshold:
-#             morph = "Spiral"
-#             clean = True
-#         elif irregular > irregular_threshold:
-#             morph = "Irregular"
-#             clean = True
-#         else:
-#             morph = "Uncertain"
-#             clean = False
-        
-#         morphology.append(morph)
-#         clean_flags.append(clean)
-    
-#     # Add columns to catalog
-#     catalog['morphology'] = morphology
-#     catalog['morphology_clean'] = clean_flags
-    
-#     # Print summary
-#     print(f"  Classification summary:")
-#     for morph in ["Elliptical", "Spiral", "Irregular", "Uncertain"]:
-#         count = sum(1 for m in morphology if m == morph)
-#         print(f"    {morph}: {count} galaxies ({100*count/len(catalog):.1f}%)")
-    
-#     print(f"  Clean sample (well-classified): {sum(clean_flags)} galaxies")
-    
-#     return catalog
-
-
 
 if __name__ == "__main__":
   
@@ -247,10 +212,12 @@ if __name__ == "__main__":
         main_catalog_path=MAIN_CATALOG,
         ref_catalog_path=REF_CATALOG,
         field_filter='GDS',
-        max_separation=0.5,
+        max_separation=1, # Change this to 1 for larger field search
         save_output=True,
         output_filename="matched_catalog.fits"
     )
+
+    # print(matched_catalogue.colnames)
     
     # Add morphology classes
     # matched_with_classes = add_morphology_classes(matched)

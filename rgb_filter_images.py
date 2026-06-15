@@ -18,9 +18,10 @@ Match catalogue by RA/Dec to get a consistent list of galaxies to work with
 # Begin by importing all required modules into this file
 from astropy.io import fits
 from astropy.table import Table
-from astropy.visualization import make_lupton_rgb
+from astropy.visualization import make_lupton_rgb, make_rgb, LogStretch, SqrtStretch, ManualInterval
 from match_catalogue import catalogue_matcher
 from filter_cutouts import make_filter_cutouts
+from label_galaxy_morphology import add_morphology_classes
 import matplotlib.pyplot as plt
 import numpy as np
 import os
@@ -35,9 +36,9 @@ Workflow:
 """
 
 
-
+#  Find the optimal combination of values for stretch and Q to best bring out wanted features for CNN training
 def make_rgb_from_matched_catalog(red_dir, green_dir, blue_dir, output_dir, 
-                                  matched_catalog, stretch=0.5, Q=10) -> List[str]:
+                                  matched_catalog, stretch=0.2, Q=2.5) -> List[str]:
     """
     Create RGB images from filter cutouts for galaxies in matched catalog.
     
@@ -76,6 +77,8 @@ def make_rgb_from_matched_catalog(red_dir, green_dir, blue_dir, output_dir,
     
     # Determine ID column name
     id_col = None
+
+    # "ID" and "gz_id" columns are two different columns
     for possible_name in ['ID', 'id', 'NUMBER', 'Number']:
         if possible_name in matched_catalog.colnames:
             id_col = possible_name
@@ -92,7 +95,9 @@ def make_rgb_from_matched_catalog(red_dir, green_dir, blue_dir, output_dir,
     missing_files = 0
     
     for idx in range(len(matched_catalog)):
+        # print(f'\n \n { matched_catalog[id_col] } Code for "galaxy_id = Matched_catalog[id_col]" ') # comment out when needed
         galaxy_id = matched_catalog[id_col][idx]
+        # print(f'\n \n \n {galaxy_id} vs { matched_catalog["gz_id"] if 't00_smooth_or_featured_a0_smooth_weighted_frac' in matched_catalog.colnames else 0}')
         
         # Construct file paths for each filter
         # Note: Adjust the filename pattern to match file's actual naming convention
@@ -112,41 +117,71 @@ def make_rgb_from_matched_catalog(red_dir, green_dir, blue_dir, output_dir,
         green_data = fits.getdata(green_file)
         blue_data = fits.getdata(blue_file)
         
-        # Clean the data (remove NaNs, infinities, negative values)
-        red_data = 4/3*np.nan_to_num(red_data, nan=0.0, posinf=0.0, neginf=0.0)
+        # # Clean the data (remove NaNs, infinities, negative values)
+        red_data = np.nan_to_num(red_data, nan=0.0, posinf=0.0, neginf=0.0)
         green_data = np.nan_to_num(green_data, nan=0.0, posinf=0.0, neginf=0.0)
-        blue_data = 4/3*np.nan_to_num(blue_data, nan=0.0, posinf=0.0, neginf=0.0)
+        blue_data = np.nan_to_num(blue_data, nan=0.0, posinf=0.0, neginf=0.0)
         
-        # Clip negative values to zero (flux should be non-negative). Uncomment this after checking the effect on the data
+        # # Clip negative values to zero (flux should be non-negative). Uncomment this after checking the effect on the data
         # red_data = np.maximum(red_data, 0)
         # green_data = np.maximum(green_data, 0)
         # blue_data = np.maximum(blue_data, 0)
         
-        # Optional: Clip extreme outliers to prevent scaling issues
-        # This removes the brightest 0.5% of pixels
+        
+        # vmin_r = np.percentile(red_data, 1)
         # vmax_r = np.percentile(red_data, 99.5)
+        # vmin_g = np.percentile(green_data, 1)
         # vmax_g = np.percentile(green_data, 99.5)
+        # vmin_b = np.percentile(blue_data, 1)
         # vmax_b = np.percentile(blue_data, 99.5)
+
+        # red_data = np.clip(red_data, vmin_r, vmax_r) # Rescaled array by 1.2: 1 : 1.2
+        # green_data = np.clip(green_data, vmin_g, vmax_g)
+        # blue_data = np.clip(blue_data, vmin_b, vmax_b)
+
+        # # Normalize each filter to [0, 1] range for consistent scaling
+        # red_data = (red_data - vmin_r) / (vmax_r - vmin_r)
+        # green_data = (green_data - vmin_g) / (vmax_g - vmin_g)
+        # blue_data = (blue_data - vmin_b) / (vmax_b - vmin_b)
         
-        # red_data = np.clip(red_data, 0, vmax_r)
-        # green_data = np.clip(green_data, 0, vmax_g)
-        # blue_data = np.clip(blue_data, 0, vmax_b)
         
-        # Make RGB using Lupton's asinh scaling
-        rgb_array = make_lupton_rgb(red_data, green_data, blue_data, 
-                                     stretch=stretch, Q=Q, minimum=0)
+
+
+        # Use the maximum value of the 99.5% percentile over all three filters
+        # as the maximum value:
+        # Borrowed code from https://docs.astropy.org/en/latest/visualization/rgb.html
+        pctl = 99.5 
+        maximum = 0.
+
+        # # Clip extreme outliers to prevent scaling issues (removes bottom 1% and top 0.5% of pixels)
+        for img in [red_data,green_data,blue_data]:
+            val = np.percentile(img,pctl)
+            if val > maximum:
+                maximum = val
+
+        # rgb_array = make_rgb(red_data, green_data, blue_data, interval=ManualInterval(vmin=0, vmax=maximum) )
+        rgb_array = make_lupton_rgb(red_data, green_data, blue_data, stretch=stretch, Q=Q)
+
+        # # Make RGB using Lupton's asinh scaling # I changed it to implement the make_rgb() function
+        # rgb_array = make_rgb(red_data, green_data, blue_data, # Using LogStretch() function
+        #                              stretch=LogStretch(a=10), interval=ManualInterval(vmin=0, vmax=maximum))
         
+        # # rgb_array = make_rgb(red_data, green_data, blue_data, # Using SqrtStretch() function
+        # #                              stretch=SqrtStretch(), interval=ManualInterval(vmin=0, vmax=maximum))
+
+        
+
         # Save as PNG
-        output_path = os.path.join(output_dir, f"galaxy_{galaxy_id}.png")
+        output_path = os.path.join(output_dir, f"galaxy_{matched_catalog["gz_id"][idx]}.png") # names the pdf with the more informative ref_catalog id which includes the field.
         plt.imsave(output_path, rgb_array)
         rgb_paths.append(output_path)
         
         # Save morphology label in companion file for CNN training
-        # if 'morphology' in matched_catalog.colnames:
-        #     morphology = matched_catalog['morphology'][idx]
-        #     label_file = output_path.replace('.png', '_label.txt')
-        #     with open(label_file, 'w') as f:
-        #         f.write(morphology)
+        if 'morphology' in matched_catalog.colnames:
+            morphology = matched_catalog['morphology'][idx]
+            label_file = output_path.replace('.png', '_label.txt')
+            with open(label_file, 'w') as f:
+                f.write(morphology)
         
         successful += 1
         
@@ -202,21 +237,35 @@ if __name__ == "__main__":
     # Set up for testing the code for files stored on the SMB server:
     # First connect to colby smb serve and login so that the drive mounts to /Volumes/Research/
 
-    BASE_MOUNT = "/Volumes/Research/emcgrath/Research/CANDELS_data/mosaics/gds/" # This is readable by Python
+    BASE_MOUNT = "/Volumes/Research/emcgrath/Research/CANDELS_data/mosaics/gds/" # This is readable by Python. For GDS field
+    # BASE_MOUNT = "/Volumes/Research/emcgrath/Research/CANDELS_data/mosaics/cos/" # This is readable by Python. For COS field
+    # BASE_MOUNT = "/Volumes/Research/emcgrath/Research/CANDELS_data/mosaics/uds/" # This is readable by Python. For UDS field
+
 
     # Input data paths
-    MAIN_CATALOG_PATH = "/Users/holyphysics/Desktop/Galaxy_Classification/gds_merged_v1.1.fits"
+    MAIN_CATALOG_PATH = "/Users/holyphysics/Desktop/Galaxy_Classification/gds_merged_v1.1.fits" # For GDS
+    # MAIN_CATALOG_PATH = "/Users/holyphysics/Desktop/Galaxy_Classification/cos_merged_v1.1.fits" # For COS
+    # MAIN_CATALOG_PATH = "/Users/holyphysics/Desktop/Galaxy_Classification/uds_merged_v1.1.fits" # For UDS
+
     REF_CATALOG_PATH = "/Users/holyphysics/Desktop/Galaxy_Classification/gz_candels_table_2_main_release.fits"
     
     # Filter information - TODO: Ask Prof. McGrath which filters to use
     RED_FILTER = "f160w"      # Example - confirm with Prof. McGrath
     GREEN_FILTER = "f125w"    # Example - confirm with Prof. McGrath
-    BLUE_FILTER = "f606w"     # Example - confirm with Prof. McGrath
+    BLUE_FILTER = "f814w"     # Example - confirm with Prof. McGrath
     
     # Paths to FITS images for each filter 
-    RED_IMAGE_PATH = BASE_MOUNT + "goodss_all_wfc3_ir_f160w_060mas_v1.0_drz.fits"
+    RED_IMAGE_PATH = BASE_MOUNT + "goodss_all_wfc3_ir_f160w_060mas_v1.0_drz.fits" # For GDS field
     GREEN_IMAGE_PATH = BASE_MOUNT + "goodss_all_wfc3_ir_f125w_060mas_v1.0_drz.fits"
     BLUE_IMAGE_PATH = BASE_MOUNT + "goodss_all_acs_wfc_f814w_060mas_v1.5_drz.fits"
+
+    # RED_IMAGE_PATH = BASE_MOUNT + "30mas/"+ "cos_2epoch_wfc3_f160w_030mas_v1.0_drz.fits" # For COS field
+    # GREEN_IMAGE_PATH = BASE_MOUNT + "30mas/"+ "cos_2epoch_wfc3_f125w_030mas_v1.0_drz.fits"
+    # BLUE_IMAGE_PATH = BASE_MOUNT + "cos_2epoch_acs_f606w_060mas_v1.0_drz.fits"
+
+    # RED_IMAGE_PATH = BASE_MOUNT + "goodss_all_wfc3_ir_f160w_060mas_v1.0_drz.fits" # For UDS field
+    # GREEN_IMAGE_PATH = BASE_MOUNT + "goodss_all_wfc3_ir_f125w_060mas_v1.0_drz.fits"
+    # BLUE_IMAGE_PATH = BASE_MOUNT + "goodss_all_acs_wfc_f814w_060mas_v1.5_drz.fits"
 
     # Check if files exist before running
     for img_path, name in [(RED_IMAGE_PATH, "RED"), (GREEN_IMAGE_PATH, "GREEN"), (BLUE_IMAGE_PATH, "BLUE")]:
@@ -233,17 +282,17 @@ if __name__ == "__main__":
     
     # Testing parameters
     TEST_MODE = True           # Set to False for full run
-    TEST_SAMPLE_SIZE = 5      # Number of galaxies to test with
+    TEST_SAMPLE_SIZE = 6      # Number of galaxies to test with
     
     # Match catalogues and add morphology labels
-    print(" Matching cataogues")
+    print(" Matching catalogues")
 
     
     matched_catalog = catalogue_matcher(
         main_catalog_path=MAIN_CATALOG_PATH,
         ref_catalog_path=REF_CATALOG_PATH,
-        field_filter='GDS',           # GOODS-S field
-        max_separation=0.5,           # 0.5 arcseconds
+        field_filter='GDS',           # Appropriate field should be entered
+        # max_separation=0.5,           # 0.5 arcseconds
         save_output=True,
         output_filename="matched_catalog.fits"
     )
@@ -251,16 +300,18 @@ if __name__ == "__main__":
     # Note: You'll need to add morphology classification here
     # For now, we'll proceed with the matched catalog
     # Create test sample (for debugging)
+    morphology_matched_catalog = add_morphology_classes(matched_catalog)
     
     
     if TEST_MODE:
         print(" Test mode is on and will use a small sample of galaxies")
-        working_catalog = test_small_sample(matched_catalog, TEST_SAMPLE_SIZE)
+        working_catalog = test_small_sample(morphology_matched_catalog, TEST_SAMPLE_SIZE)
     else:
-        working_catalog = matched_catalog
+        working_catalog = morphology_matched_catalog
     
 
     # Make cutouts for each filter
+    box_radius: int = 48 # So that images are 96 by 96
 
     print("Making cutouts for each filter")
     # # Red filter cutouts
@@ -269,7 +320,7 @@ if __name__ == "__main__":
         image_path=RED_IMAGE_PATH,
         band=RED_FILTER,
         output_dir=CUTOUTS_RED_DIR,
-        box_radius=300
+        box_radius=box_radius
     )
     # 
     # # Green filter cutouts
@@ -278,7 +329,7 @@ if __name__ == "__main__":
         image_path=GREEN_IMAGE_PATH,
         band=GREEN_FILTER,
         output_dir=CUTOUTS_GREEN_DIR,
-        box_radius=300
+        box_radius=box_radius
     )
     # 
     # # Blue filter cutouts
@@ -287,7 +338,7 @@ if __name__ == "__main__":
         image_path=BLUE_IMAGE_PATH,
         band=BLUE_FILTER,
         output_dir=CUTOUTS_BLUE_DIR,
-        box_radius=300
+        box_radius=box_radius
     )
     
     # Make RGB images
@@ -306,10 +357,10 @@ if __name__ == "__main__":
 
     print("Workflow is now completed.")
     
-    if TEST_MODE:
-        print(f"\n Tested with {TEST_SAMPLE_SIZE} galaxies")
+    # if TEST_MODE:
+    #     print(f"\n Tested with {TEST_SAMPLE_SIZE} galaxies")
     
-    print("\n My Next steps:")
-    print("1. Run the script with TEST_MODE = True first")
-    print("2. Verify the output PNGs look correct")
-    print("3. Set TEST_MODE = False for full run")
+    # print("\n My Next steps:")
+    # print("1. Run the script with TEST_MODE = True first")
+    # print("2. Verify the output PNGs look correct")
+    # print("3. Set TEST_MODE = False for full run")

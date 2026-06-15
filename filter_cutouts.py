@@ -24,7 +24,7 @@ from typing import Tuple, List
 
 
 
-def make_filter_cutouts(catalog, image_path, band, output_dir, box_radius=212, 
+def make_filter_cutouts(catalog, image_path, band, output_dir, box_radius=103.5, 
                         rootname="candels", prefix="", suffix="") -> Tuple[ List[str] , int]: # I'm probably making some mistake in the type annotation but I'll digress...
     """
     Create thumbnail cutouts for all galaxies in a catalog from a single filter image.
@@ -89,6 +89,8 @@ def make_filter_cutouts(catalog, image_path, band, output_dir, box_radius=212,
     # Catalogs use different names for the ID column
     # Common possibilities: 'ID', 'id', 'NUMBER', 'Number'
     id_col = None
+    
+    # "ID" and "gz_id" columns are two different columns
     for possible_name in ['ID', 'id', 'NUMBER', 'Number']:
         if possible_name in catalog.colnames:
             id_col = possible_name
@@ -139,6 +141,7 @@ def make_filter_cutouts(catalog, image_path, band, output_dir, box_radius=212,
             science_data = hdu[0].data
             image_wcs = WCS(hdu[0].header)
             print("Format: Primary HDU")
+            
         
         error_data = hdu['ERR'].data if 'ERR' in hdu else np.zeros_like(science_data)
         
