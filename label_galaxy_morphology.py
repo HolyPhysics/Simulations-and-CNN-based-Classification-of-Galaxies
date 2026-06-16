@@ -11,7 +11,7 @@ def add_morphology_classes(catalog, smooth_threshold=0.6, features_threshold=0.5
     Parameters
     ----------
     catalog : astropy.table.Table
-        Catalog containing Galaxy Zoo vote fraction columns
+        Catalog containing Galaxy Zoo vote fraction columns. For my usecase here, this will be the matched catalogue
     smooth_threshold : float, optional
         Threshold for classifying as elliptical (smooth fraction > this)
     features_threshold : float, optional
@@ -40,12 +40,15 @@ def add_morphology_classes(catalog, smooth_threshold=0.6, features_threshold=0.5
         irregular = catalog['gz_irregular_frac'][i]
         
         # Classify based on vote thresholds
-        if smooth > smooth_threshold and features < features_threshold:
+        # if smooth > smooth_threshold and features < features_threshold:
+        if smooth > smooth_threshold:
             morph = "Elliptical"
             clean = True
-        elif features > features_threshold and spiral > spiral_threshold:
+        # elif features > features_threshold and spiral > spiral_threshold:
+        elif spiral > spiral_threshold:
             morph = "Spiral"
             clean = True
+        # elif irregular > irregular_threshold:
         elif irregular > irregular_threshold:
             morph = "Irregular"
             clean = True
@@ -95,5 +98,6 @@ if __name__ == "__main__":
     
     # Save the fully classified catalog
     matched_with_classes.write("morphology_matched_catalog.fits", overwrite=True)
+    print(matched_with_classes['morphology'])
     
     print("\n Done!")
