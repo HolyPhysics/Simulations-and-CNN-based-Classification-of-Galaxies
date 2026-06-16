@@ -172,14 +172,15 @@ def make_rgb_from_matched_catalog(red_dir, green_dir, blue_dir, output_dir,
         
 
         # Save as PNG
-        output_path = os.path.join(output_dir, f"galaxy_{matched_catalog["gz_id"][idx]}.png") # names the pdf with the more informative ref_catalog id which includes the field.
-        plt.imsave(output_path, rgb_array)
+        print(matched_catalog["gz_id"][idx])
+        output_path = os.path.join(output_dir, f"galaxy_{matched_catalog["gz_id"][idx].strip()}.png") # names the pdf with the more informative ref_catalog id which includes the field.
+        plt.imsave(output_path, rgb_array) # The .strip function above removes all leading and trailing spaces. Keeps the naming clean and tight.
         rgb_paths.append(output_path)
         
         # Save morphology label in companion file for CNN training
         if 'morphology' in matched_catalog.colnames:
             morphology = matched_catalog['morphology'][idx]
-            label_file = output_path.replace('.png', '_label.txt')
+            label_file = output_path.replace('.png','_label.txt')
             with open(label_file, 'w') as f:
                 f.write(morphology)
         

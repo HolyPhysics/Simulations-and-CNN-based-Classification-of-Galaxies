@@ -3,8 +3,8 @@
 from match_catalogue import catalogue_matcher
 
 
-def add_morphology_classes(catalog, smooth_threshold=0.6, features_threshold=0.5, 
-                           spiral_threshold=0.5, irregular_threshold=0.5):
+def add_morphology_classes(catalog, smooth_threshold=0.8, features_threshold=0.5, 
+                           spiral_threshold=0.5, irregular_threshold=0.5): # Go back to Brooke's paper for clarification on the thresholds
     """
     Convert Galaxy Zoo vote fractions into morphology classes.
     
