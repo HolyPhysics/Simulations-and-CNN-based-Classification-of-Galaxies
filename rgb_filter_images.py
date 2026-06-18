@@ -22,6 +22,7 @@ from astropy.visualization import make_lupton_rgb, make_rgb, LogStretch, SqrtStr
 from match_catalogue import catalogue_matcher
 from filter_cutouts import make_filter_cutouts
 from label_galaxy_morphology import add_morphology_classes
+from psf_matching import match_psfs
 import matplotlib.pyplot as plt
 import numpy as np
 import os
@@ -38,7 +39,7 @@ Workflow:
 
 #  Find the optimal combination of values for stretch and Q to best bring out wanted features for CNN training
 def make_rgb_from_matched_catalog(red_dir, green_dir, blue_dir, output_dir, 
-                                  matched_catalog, stretch=0.2, Q=2.5) -> List[str]:
+                                  matched_catalog, stretch=3, Q=10) -> List[str]:
     """
     Create RGB images from filter cutouts for galaxies in matched catalog.
     
@@ -116,6 +117,9 @@ def make_rgb_from_matched_catalog(red_dir, green_dir, blue_dir, output_dir,
         red_data = fits.getdata(red_file)
         green_data = fits.getdata(green_file)
         blue_data = fits.getdata(blue_file)
+
+        # Do psf_matching here before moving on with the rest of the image processing.
+        red_data, green_data, blue_data = match_psfs(red_data, green_data, blue_data)
         
         # # Clean the data (remove NaNs, infinities, negative values)
         red_data = np.nan_to_num(red_data, nan=0.0, posinf=0.0, neginf=0.0)
@@ -149,7 +153,7 @@ def make_rgb_from_matched_catalog(red_dir, green_dir, blue_dir, output_dir,
 
         # Use the maximum value of the 99.5% percentile over all three filters
         # as the maximum value:
-        # Borrowed code from https://docs.astropy.org/en/latest/visualization/rgb.html
+        # Borrowed code from lines 153-160 from https://docs.astropy.org/en/latest/visualization/rgb.html
         pctl = 99.5 
         maximum = 0.
 
@@ -180,7 +184,7 @@ def make_rgb_from_matched_catalog(red_dir, green_dir, blue_dir, output_dir,
         # Save morphology label in companion file for CNN training
         if 'morphology' in matched_catalog.colnames:
             morphology = matched_catalog['morphology'][idx]
-            label_file = output_path.replace('.png','_label.txt')
+            label_file = output_path.replace('.png','_label.txt') # Removes all ".png" within the string entirely with "_label.txt".
             with open(label_file, 'w') as f:
                 f.write(morphology)
         
