@@ -203,7 +203,7 @@ def make_filter_cutouts(catalog, image_path, band, output_dir, box_radius=103.5,
         
         # Construct output filename
         if suffix:
-            science_filename = f"{rootname}.{prefix}{galaxy_id}.{band}.{suffix}.fits"
+            science_filename = f"{rootname}.{prefix}{galaxy_id}.{band}.{suffix}.fits" #I can change what each returns here if I decide the preffered ID is that of the gz which is more imnformative
             error_filename = f"{rootname}.{prefix}{galaxy_id}.{band}.{suffix}.err.fits"
         else:
             science_filename = f"{rootname}.{prefix}{galaxy_id}.{band}.fits"
