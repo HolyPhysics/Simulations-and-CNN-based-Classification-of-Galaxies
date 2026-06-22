@@ -76,7 +76,7 @@ def make_filter_cutouts(catalog, image_path, band, output_dir, box_radius=103.5,
     """
     
     # Create output directory
-    print(f" Making cutouts for band: {band}")
+    # print(f" Making cutouts for band: {band}")
     
     # Create output directory if it doesn't exist
     if os.path.exists(output_dir):
@@ -99,7 +99,7 @@ def make_filter_cutouts(catalog, image_path, band, output_dir, box_radius=103.5,
     if id_col is None:
         raise ValueError("Catalog has no ID column! Found: " + str(catalog.colnames))
     
-    print(f"Using '{id_col}' as galaxy ID column")
+    # print(f"Using '{id_col}' as galaxy ID column")
     
     # Now, extract Coordinates and IDS from catalog 
     # Get RA, Dec, and IDs (handling different column name variations)
@@ -115,12 +115,12 @@ def make_filter_cutouts(catalog, image_path, band, output_dir, box_radius=103.5,
     dec_list = catalog[dec_col]
     id_list = catalog[id_col]
     
-    print(f" Using RA column: '{ra_col}', Dec column: '{dec_col}'")
-    print(f" Processing {len(ra_list)} galaxies...")
+    # print(f" Using RA column: '{ra_col}', Dec column: '{dec_col}'")
+    # print(f" Processing {len(ra_list)} galaxies...")
     
    
     # Open the fits file and extract data
-    print(f"\n Opening FITS image: {image_path}")
+    # print(f"\n Opening FITS image: {image_path}")
     
     with fits.open(image_path) as hdu:
         # Figured the previous code was specific to Candels codes with 
@@ -132,15 +132,15 @@ def make_filter_cutouts(catalog, image_path, band, output_dir, box_radius=103.5,
         if 'SCI' in hdu:
             science_data = hdu['SCI'].data
             image_wcs = WCS(hdu[0].header, hdu)
-            print("Format: CANDELS (SCI extension)")
+            # print("Format: CANDELS (SCI extension)")
         elif 'SCI' in hdu[1].name if len(hdu) > 1 else False:
             science_data = hdu[1].data
             image_wcs = WCS(hdu[1].header)
-            print("Format: JWST (extension 1)")
+            # print("Format: JWST (extension 1)")
         else:
             science_data = hdu[0].data
             image_wcs = WCS(hdu[0].header)
-            print("Format: Primary HDU")
+            # print("Format: Primary HDU")
             
         
         error_data = hdu['ERR'].data if 'ERR' in hdu else np.zeros_like(science_data)
@@ -225,12 +225,12 @@ def make_filter_cutouts(catalog, image_path, band, output_dir, box_radius=103.5,
     
   
 
-    print("\n Some data to keep track of things: ")
-    print(f" Band: {band}")
-    print(f" Total galaxies in catalog: {len(ra_list)} == {len(dec_list)} == {len(id_list)}")
-    print(f" Successful cutouts: {successful_cutouts}")
-    print(f" Skipped (outside image): {skipped_outside}")
-    print(f" Output directory: {output_dir}")
+    # print("\n Some data to keep track of things: ")
+    # print(f" Band: {band}")
+    # print(f" Total galaxies in catalog: {len(ra_list)} == {len(dec_list)} == {len(id_list)}")
+    # print(f" Successful cutouts: {successful_cutouts}")
+    # print(f" Skipped (outside image): {skipped_outside}")
+    # print(f" Output directory: {output_dir}")
     
     return output_files, successful_cutouts
 
@@ -293,5 +293,5 @@ if __name__ == "__main__":
     #     box_radius=300
     # )
     
-    print("\n All cutouts complete!")
+    # print("\n All cutouts complete!")
     # I'll need to transfer the running of this file over to a google colab script

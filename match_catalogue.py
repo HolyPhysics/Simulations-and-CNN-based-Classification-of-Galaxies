@@ -65,14 +65,14 @@ def catalogue_matcher(main_catalog_path, ref_catalog_path, field_filter='GDS',
     """
     
     # First we load the galaxy catalogue in
-    print(f" \n Loading main catalog from: {main_catalog_path}")
+    # print(f" \n Loading main catalog from: {main_catalog_path}")
     main_catalog = Table.read(main_catalog_path)
-    print(f" Main catalog has {len(main_catalog)} galaxies") # Next we check the number of galaxies involved
+    # print(f" Main catalog has {len(main_catalog)} galaxies") # Next we check the number of galaxies involved
     
     # We perform a similar task for the reference catalogue
-    print(f"\n Loading reference catalog from: {ref_catalog_path}")
+    # print(f"\n Loading reference catalog from: {ref_catalog_path}")
     ref_catalog = Table.read(ref_catalog_path)
-    print(f" Reference catalog has {len(ref_catalog)} galaxies")
+    # print(f" Reference catalog has {len(ref_catalog)} galaxies")
 
     # print(f"\n { True if 't00_smooth_or_featured_a0_smooth_weighted_frac' in ref_catalog.colnames else False }, 't00_smooth_or_featured_a0_smooth_weighted_frac' is in reference catalog \n")
     # The commented-out code above confirms that the required classification features are present and so can be extracted
@@ -80,8 +80,8 @@ def catalogue_matcher(main_catalog_path, ref_catalog_path, field_filter='GDS',
 
     # Filter reference catalog to specific field if requested
     if field_filter:
-        print("\n Field specific filtering by UDS is needed.")
-        print(f"\n Filtering reference catalog to field: {field_filter}")
+        # print(f"\n Field specific filtering by {field_filter} is needed.")
+        # print(f"\n Filtering reference catalog to field: {field_filter}")
         filtered_ref = ref_catalog[[str(id).startswith(field_filter) for id in ref_catalog['ID']]]
         print(f" Found {len(filtered_ref)} galaxies in {field_filter} field")
     else:
@@ -138,7 +138,7 @@ def catalogue_matcher(main_catalog_path, ref_catalog_path, field_filter='GDS',
 
 
     # Create the matched catalog with morphology labels
-    print("\n Creating matched catalog...")
+    # print("\n Creating matched catalog...")
     # Add morphology labels from reference catalog
     # Note: This adds the raw vote fractions - this needs to be converted to classes separately
     if 't00_smooth_or_featured_a0_smooth_weighted_frac' in matched_ref.colnames:
@@ -186,7 +186,7 @@ def catalogue_matcher(main_catalog_path, ref_catalog_path, field_filter='GDS',
     matched_catalog['match_separation_arcsec'] = d2d[good_matches].arcsec
     
     print(f"\n MATCHING COMPLETE")
-    print(f"\n Final matched catalog size: {len(matched_catalog)} galaxies")
+    # print(f"\n Final matched catalog size: {len(matched_catalog)} galaxies")
     # print(f" - Each galaxy has RA/Dec from main catalog")
     # print(f" - Galaxy Zoo vote fractions added as columns")
     print(f" - Match separation: min={np.min(matched_catalog['match_separation_arcsec']):.2f} arcsec, "

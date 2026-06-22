@@ -22,7 +22,7 @@ from astropy.visualization import make_lupton_rgb, make_rgb, LogStretch, SqrtStr
 from match_catalogue import catalogue_matcher
 from filter_cutouts import make_filter_cutouts
 from label_galaxy_morphology import add_morphology_classes
-from psf_matching import match_psfs
+from psf_matching import match_psfs_with_provided_psfs
 import matplotlib.pyplot as plt
 import numpy as np
 import os
@@ -37,9 +37,21 @@ Workflow:
 """
 
 
+
+BASE_PSF_PATH = "/Volumes/Research/emcgrath/CANDELS/psfs/" 
+
+psf_red_path = BASE_PSF_PATH + "gds_60mas_wfc3_hybrid/" + "gs_deep_f160w_v0.5_psf.fits"
+psf_green_path = BASE_PSF_PATH + "gds_60mas_wfc3_hybrid/" + "gs_deep_f125w_v0.5_psf.fits"
+psf_blue_path = BASE_PSF_PATH + "gds_60mas_acs_yicheng/" + "gs_psf_ss_acs_i_bkgsub.fits"
+
+
+
 #  Find the optimal combination of values for stretch and Q to best bring out wanted features for CNN training
 def make_rgb_from_matched_catalog(red_dir, green_dir, blue_dir, output_dir, 
-                                  matched_catalog, stretch=3, Q=10) -> List[str]:
+                                  matched_catalog, stretch=0.5, Q=10,
+                                  psf_red_path=psf_red_path,
+                                  psf_green_path=psf_green_path,
+                                  psf_blue_path=psf_blue_path) -> List[str]:
     """
     Create RGB images from filter cutouts for galaxies in matched catalog.
     
@@ -88,8 +100,8 @@ def make_rgb_from_matched_catalog(red_dir, green_dir, blue_dir, output_dir,
     if id_col is None:
         raise ValueError("Catalog has no ID column!")
     
-    print(f"Processing {len(matched_catalog)} galaxies...")
-    print(f"Using stretch={stretch}, Q={Q}")
+    # print(f"Processing {len(matched_catalog)} galaxies...")
+    # print(f"Using stretch={stretch}, Q={Q}")
     
     rgb_paths = []
     successful = 0
@@ -119,7 +131,15 @@ def make_rgb_from_matched_catalog(red_dir, green_dir, blue_dir, output_dir,
         blue_data = fits.getdata(blue_file)
 
         # Do psf_matching here before moving on with the rest of the image processing.
-        red_data, green_data, blue_data = match_psfs(red_data, green_data, blue_data)
+        try:
+            red_data, green_data, blue_data = match_psfs_with_provided_psfs(
+                red_data, green_data, blue_data,
+                psf_red_path, psf_green_path, psf_blue_path)
+            
+            print("PSF matching is working. Keep at it...")
+        except Exception as e:
+            print(f"PSF matching failed for galaxy {galaxy_id}: {e}")
+            continue
         
         # # Clean the data (remove NaNs, infinities, negative values)
         red_data = np.nan_to_num(red_data, nan=0.0, posinf=0.0, neginf=0.0)
@@ -204,7 +224,7 @@ def make_rgb_from_matched_catalog(red_dir, green_dir, blue_dir, output_dir,
     return rgb_paths
 
 
-def test_small_sample(catalog, sample_size=5):
+def test_small_sample(catalog, sample_size=5) -> List[str]:
     """
     Extract a small sample of galaxies for testing.
     
@@ -228,8 +248,8 @@ def test_small_sample(catalog, sample_size=5):
     else:
         sample_catalog = catalog
     
-    print(f"\n Created test sample with {len(sample_catalog)} galaxies")
-    print("Sample galaxy IDs:", sample_catalog['ID'][:5].tolist())
+    # print(f"\n Created test sample with {len(sample_catalog)} galaxies")
+    # print("Sample galaxy IDs:", sample_catalog['ID'][:5].tolist())
     
     return sample_catalog
 
@@ -290,7 +310,7 @@ if __name__ == "__main__":
     TEST_SAMPLE_SIZE = 6      # Number of galaxies to test with
     
     # Match catalogues and add morphology labels
-    print(" Matching catalogues")
+    print("Matching catalogues")
 
     
     matched_catalog = catalogue_matcher(
@@ -346,7 +366,7 @@ if __name__ == "__main__":
         box_radius=box_radius
     )
     
-    # Make RGB images
+
     print("Making RGB images ")
 
     
@@ -361,11 +381,3 @@ if __name__ == "__main__":
     
 
     print("Workflow is now completed.")
-    
-    # if TEST_MODE:
-    #     print(f"\n Tested with {TEST_SAMPLE_SIZE} galaxies")
-    
-    # print("\n My Next steps:")
-    # print("1. Run the script with TEST_MODE = True first")
-    # print("2. Verify the output PNGs look correct")
-    # print("3. Set TEST_MODE = False for full run")
