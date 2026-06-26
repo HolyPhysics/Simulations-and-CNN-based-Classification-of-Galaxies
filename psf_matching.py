@@ -6,6 +6,8 @@ Come back and update the return types of each functions.
 
 from photutils.psf_matching import make_wiener_kernel, TukeyWindow
 from scipy.signal import fftconvolve # from this site: https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.fftconvolve.html
+# The fftconvolve is much faster than traditional fourier convolution functions because it uses 
+# the Fast Fourier Transform(fft) algorithm which aids its speed up of the processes involved. 
 from astropy.io import fits
 import numpy as np
 import os
@@ -31,10 +33,10 @@ def load_psf_from_file(psf_path) -> List[float]:
     
     psf_data = fits.getdata(psf_path)
     
-    # Remove any NaN or inf values
+    # Remove/cleans any NaN or inf values
     psf_data = np.nan_to_num(psf_data, nan=0.0, posinf=0.0, neginf=0.0)
     
-    # Normalize to sum to 1
+    # Normalize to sum to 1. A requirement from the psf documentation at: https://photutils.readthedocs.io/en/latest/user_guide/psf_matching.html#window-functions
     psf_data = psf_data / np.sum(psf_data)
     
     return psf_data
@@ -87,7 +89,7 @@ def match_psfs_with_provided_psfs(red_data, green_data, blue_data,
     # Create window
     window = TukeyWindow(alpha=window_alpha)
     
-    print("\n Computing matching kernels...")
+    # print("\n Computing matching kernels...")
     
     # Match each image to target
     def match_one(source_psf, image) -> List[str]: # I can delete the field for filter_name; Old version: match_one(source_psf, image, filter_name)
@@ -108,3 +110,4 @@ def match_psfs_with_provided_psfs(red_data, green_data, blue_data,
     # print("\n PSF matching complete!")
     
     return matched_red, matched_green, matched_blue
+      
