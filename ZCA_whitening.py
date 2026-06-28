@@ -9,6 +9,7 @@ ZCA whitenning decorrelates and scales images pixels in the image channels and r
 
 """
 Task:
+    - This code fails for single images(Any workaround for this edge case?)
     - Save the covariance matrices as well and the 
     - Mean to a file to be applied on the testing data set.
     - Write other files to perform various other data augmentation tasks like:
@@ -17,13 +18,14 @@ Task:
         - Random Cropping
         - Color Augmentation
         - Scale jittering
+    - Write a different file to add interacting merger/non interacting classification for each galaxy
 """
 
 
 import numpy as np
 import os
 # import PIL
-from PIL import Image
+from PIL import Image, ImageOps # This is a versatile python library for image processing
 from typing import Tuple, List
 import time
 import matplotlib.pyplot as plt
@@ -90,20 +92,46 @@ def ZCA_whitening(image_path, output_path, regularization_constant = 1e-4) -> No
 
     if os.path.exists(image_path):
         image_folder = image_path
+        print(' Image folder exists')
     else:
         print("\n The image path is nonexistent!")
+    
+    # cropped_images = [] # Uncomment the code below when working with images of different shapes
+    # target_size = (150,150) # Uncomment the code below when working with images of different shapes
+
+    ## Uncomment the code below when working with images of different shapes
+    # for filename in os.listdir(image_folder): # this part of the code is credited to: https://www.pythoninformer.com/python-libraries/pillow/imageops-resizing/
+    #     if filename.lower().endswith((".png",".jpg",".jpeg")):
+    #         img_path = os.path.join(image_folder, filename)
+            
+    #         with Image.open(img_path) as img:
+    #             # ImageOps.fit automatically scales and center-crops to fit the exact size of the images
+    #             final_img = ImageOps.fit(img, target_size, centering=(0.5, 0.5))
+    #             cropped_images.append(final_img)
+    #             # final_img.save(os.path.join(output_folder, f"fit_{filename}"))
 
     # grab all files ending in ".png" from the provided file path as follows:
-    image_container = [image for image in os.listdir(image_folder) if image.endswith(".png")]
+    image_container = [image for image in os.listdir(image_folder) if image.lower().endswith((".png",".jpg",".jpeg")) ]
+    # print(image_container)
     # print(image_container)
     collected_images = []
 
     # Then we load each image and get them ready for the ZCA
-    for image_name in image_container:
-        image_path = os.path.join(image_folder, image_name)
-        image = Image.open(image_path).convert("RGB") # I can convert to only RGB using Image.open(img_path).convert('RGB') if the Alpha channel is not needed or using an if channel = 4 images = images[:,:,:, :3]
+    for image_name in image_container: # change to for image_name in cropped_images when dealing with images of different shapes
+        image_path = os.path.join(image_folder, image_name)   #comment this out when dealing with images of different shapes
+        # print(f"\n {image_path}")
+        image = Image.open(image_path).convert("RGB") #comment this out when dealing with images of different shapes
+        '''
+        I can convert to only RGB using Image.open(img_path).convert('RGB') if the 
+        Alpha channel is not needed or using an if channel = 4 images = images[:,:,:, :3]
+        #comment the above out when dealing with images of different shapes
+        '''
+        # print(f"\n {image}")
         image_array = np.array(image, dtype=np.float32) # This is a 3-dimensional array of a single image
+        # Change the image in above line to image_name when working with images of different dimesnions and after commenting out all the required codes for such case
+        # print(f"\n {image_array}")
         collected_images.append(image_array)
+        # print(f"\n {collected_images}")
 
     original_image_datatype = np.uint8 # assuming the uniformity of the datatypes across all images
     print(original_image_datatype)
@@ -121,7 +149,7 @@ def ZCA_whitening(image_path, output_path, regularization_constant = 1e-4) -> No
     # print(flattened_image.shape)
     # print(flattened_image)
 
-    flattened_image_mean = np.mean(flattened_image, axis = 0) # axis = 0 operates vertically for each column and axis = 1 operates horizontally for each rows
+    flattened_image_mean = np.mean(flattened_image, axis=0) # axis = 0 operates vertically for each column and axis = 1 operates horizontally for each rows
     # this computes the mean of the pixels value for each color channel as outlined in the ZCA steps
     # print(flattened_image_mean)
 
@@ -178,21 +206,24 @@ def ZCA_whitening(image_path, output_path, regularization_constant = 1e-4) -> No
             print(f"  Saved {index}/{number_of_images} images")
     
     print(f"Done! Saved {number_of_images} whitened images to {output_path}")
-    
+
     return zca_images
 
 
 
 if __name__ == "__main__":
 
-    image_path = "rgb_training_data"
+    # image_path = "random_images_from_the_internet"  # Uncomment the code below when working with images of different shapes
+    # output_path = "ZCA_whitened_random_images"
+
+    image_path = "rgb_training_data" # These images are of the same dimensions as the filter_cutouts function makes them all of the same height and width
     output_path = "ZCA_whitened_images"
 
     zca_images = ZCA_whitening(image_path, output_path)
-    print(zca_images)
+    # print(zca_images)
 
     plt.figure(figsize=(10, 10))
-    plt.imshow(zca_images[4][:,:,1], cmap='viridis')  # Shows first channel
+    plt.imshow(zca_images[0][:,:,1], cmap='viridis')  # Shows first channel
     plt.colorbar()
     plt.title("ZCA Whitened - First Channel")
     plt.show()
