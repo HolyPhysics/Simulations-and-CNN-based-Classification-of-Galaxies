@@ -2,14 +2,15 @@
 Author: Chidiebere N. Okafor
 
 Purpose: This file takes in the training data, performs the so-called ZCA-whitening on the
-.png files and returns the list of the ZCA-whitened images.
+images ( possible image extensions considered include: ".png", ".jpg", ".jpeg") and returns the list of the ZCA-whitened images.
 
 ZCA whitenning decorrelates and scales images pixels in the image channels and rotates the final image as best as possible to the original shape
 """
 
 """
-Task:
+Task/Notes:
     - This code fails for single images(Any workaround for this edge case?)
+    - Finish up the docstring for the ZCA_whitening() function
     - Save the covariance matrices as well and the 
     - Mean to a file to be applied on the testing data set.
     - Write other files to perform various other data augmentation tasks like:
