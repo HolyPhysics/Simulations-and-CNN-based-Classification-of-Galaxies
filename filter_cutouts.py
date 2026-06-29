@@ -1,5 +1,5 @@
 # """
-# Author: Chidiebere N. Okafor
+# Author: Chidiebere N. Okafor; Prof. Elizabeth McGrath
 
 # Module for creating thumbnail cutouts from astronomical FITS images.
 
@@ -609,7 +609,9 @@ def make_filter_cutouts(catalog, image_paths, bands, output_dirs,
 
 if __name__ == "__main__":
     # Set up for testing the code:
-    BASE_MOUNT = "/Volumes/Research/emcgrath/Research/CANDELS_data/mosaics/gds/"
+    # BASE_MOUNT = "/Volumes/Research/emcgrath/Research/CANDELS_data/mosaics/gds/"
+    BASE_MOUNT = "/Research/emcgrath/Research/CANDELS_data/mosaics/gds/" # This is how to run it for NSCC(Natural Science Computing Cluster)
+
     
     MATCHED_CATALOG = "matched_catalog.fits"
     

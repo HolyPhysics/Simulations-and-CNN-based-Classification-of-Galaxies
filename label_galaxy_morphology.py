@@ -1,4 +1,7 @@
 # I need this for labelling the galaxies for classification
+"""
+Author: Chidiebere N. Okafor
+"""
 
 from match_catalogue import catalogue_matcher
 

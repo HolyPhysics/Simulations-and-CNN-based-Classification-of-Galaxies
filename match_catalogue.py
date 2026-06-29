@@ -1,3 +1,7 @@
+"""
+Author: Chidiebere N. Okafor; Prof. Elizabeth McGrath
+"""
+
 from astropy.io import fits
 from astropy.table import Table,QTable
 import numpy as np

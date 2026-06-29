@@ -187,6 +187,7 @@ def ZCA_whitening(image_path, output_path, regularization_constant = 1e-4) -> No
     V = vt.T # This is the U or V matrix from the ZCA formula
 
     zca_whitened_images = centered_flattened_image @ V @ np.diag( inverse_sqrt_of_S ) @ V.T # The ZCA whitening
+    # zca_whitened_images =  V @ np.diag( inverse_sqrt_of_S ) @ V.T @ centered_flattened_image # The ZCA whitening
     # pca =  PCA(whiten=True, n_components=centered_flattened_image.shape[1])
     # zca_whitened_images = pca.fit_transform(centered_flattened_image) # PCA whitening
     # print(zca_whitened_images)
