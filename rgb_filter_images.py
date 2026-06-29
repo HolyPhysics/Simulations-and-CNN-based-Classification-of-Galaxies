@@ -107,6 +107,14 @@ def make_rgb_from_matched_catalog(red_dir, green_dir, blue_dir, output_dir,
     
     # Create output directory if it doesn't exist
     os.makedirs(output_dir, exist_ok=True)
+
+    # Make Image and Label paths
+    image_dir = os.path.join(output_dir, "Images")
+    label_dir = os.path.join(output_dir, "Labels")
+
+    # Create the Image and Label Subfolder
+    os.makedirs(image_dir, exist_ok=True) # This will automatically create these subfolders if they don't already exit
+    os.makedirs(label_dir, exist_ok=True)
     
     # print("\n MAKING RGB IMAGES FROM CUTOUTS")
     
@@ -244,14 +252,15 @@ def make_rgb_from_matched_catalog(red_dir, green_dir, blue_dir, output_dir,
 
         # Save as PNG
         # print(matched_catalog["gz_id"][idx])
-        output_path = os.path.join(output_dir, f"galaxy_{matched_catalog["gz_id"][idx].strip()}.png") # names the pdf with the more informative ref_catalog id which includes the field.
+        output_path = os.path.join(image_dir, f"galaxy_{matched_catalog["gz_id"][idx].strip()}.png") # names the pdf with the more informative ref_catalog id which includes the field.
         plt.imsave(output_path, rgb_array) # The .strip function above removes all leading and trailing spaces. Keeps the naming clean and tight.
         rgb_paths.append(output_path)
         
         # Save morphology label in companion file for CNN training
         if 'morphology' in matched_catalog.colnames:
             morphology = matched_catalog['morphology'][idx]
-            label_file = output_path.replace('.png','_label.txt') # Removes all ".png" within the string entirely with "_label.txt".
+            # label_file = output_path.replace('.png','.txt') # Removes all ".png" within the string entirely with "_label.txt".
+            label_file = os.path.join(label_dir, f"galaxy_{matched_catalog["gz_id"][idx].strip()}.txt") # Removes all ".png" within the string entirely with "_label.txt".
             with open(label_file, 'w') as f:
                 f.write(morphology)
         
@@ -422,7 +431,7 @@ if __name__ == "__main__":
     }
 
     # This way, we easily process ALL filters simultaneously in ONE pass!
-    output_files, successful_counts = make_filter_cutouts_fast(
+    output_files, successful_counts = make_filter_cutouts(
         catalog=working_catalog,
         image_paths=image_paths,
         bands=bands,
