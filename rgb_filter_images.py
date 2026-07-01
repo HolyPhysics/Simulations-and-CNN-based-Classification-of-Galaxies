@@ -62,7 +62,7 @@ psf_blue_path = BASE_PSF_PATH + "gds_60mas_acs_yicheng/" + "gs_psf_ss_acs_i_bkgs
 RED_FILTER = "f160w"      # Example - confirm with Prof. McGrath
 GREEN_FILTER = "f125w"    # Example - confirm with Prof. McGrath
 # BLUE_FILTER = "f814w"     # Example - confirm with Prof. McGrath
-BLUE_FILTER = "f606w"
+BLUE_FILTER = "f814w"
 
 
 #  Find the optimal combination of values for stretch and Q to best bring out wanted features for CNN training
@@ -106,7 +106,7 @@ def make_rgb_from_matched_catalog(red_dir, green_dir, blue_dir, output_dir,
     """
     
     # Create output directory if it doesn't exist
-    os.makedirs(output_dir, exist_ok=True)
+    os.makedirs(output_dir, exist_ok=True) # /Users/holyphysics/Downloads/rgb_training_data
 
     # Make Image and Label paths
     image_dir = os.path.join(output_dir, "Images")
@@ -318,10 +318,11 @@ if __name__ == "__main__":
     # Set up for testing the code for files stored on the SMB server:
     # First connect to colby smb serve and login so that the drive mounts to /Volumes/Research/
 
-    BASE_MOUNT = "/Volumes/Research/emcgrath/Research/CANDELS_data/mosaics/gds/" # This is readable by Python. For GDS field
+    # BASE_MOUNT = "/Volumes/Research/emcgrath/Research/CANDELS_data/mosaics/gds/" # This is readable by Python. For GDS field
     # BASE_MOUNT = "/Volumes/Research/emcgrath/CANDELS/HLSP_GDS/" # For HLSP files
     # BASE_MOUNT = "/Volumes/Research-1/emcgrath/Research/CANDELS_data/mosaics/cos/"
     # BASE_MOUNT = "/Volumes/Research-1/emcgrath/Research/CANDELS_data/mosaics/uds/"
+    
 
 
 
@@ -339,30 +340,30 @@ if __name__ == "__main__":
     # BLUE_FILTER = "f814w"
     
     # # Paths to FITS images for each filter 
-    RED_IMAGE_PATH = BASE_MOUNT + "goodss_all_wfc3_ir_f160w_060mas_v1.0_drz.fits" # For GDS field
-    GREEN_IMAGE_PATH = BASE_MOUNT + "goodss_all_wfc3_ir_f125w_060mas_v1.0_drz.fits"
-    # # BLUE_IMAGE_PATH = BASE_MOUNT + "goodss_all_acs_wfc_f814w_060mas_v1.5_drz.fits"
-    BLUE_IMAGE_PATH = BASE_MOUNT + "gs_presm4_all_acs_f606w_60mas_v3.0_drz.fits"
-    # BLUE_IMAGE_PATH = BASE_MOUNT + "cos_2epoch_acs_f606w_060mas_v1.0_drz.fits"
-
-
-
-    # RED_IMAGE_PATH = BASE_MOUNT + "cos_2epoch_wfc3_f160w_060mas_v1.0_drz.fits" # For COS field
-    # GREEN_IMAGE_PATH = BASE_MOUNT + "cos_2epoch_wfc3_f125w_060mas_v0.1_drz.fits"
+    # RED_IMAGE_PATH = BASE_MOUNT + "goodss_all_wfc3_ir_f160w_060mas_v1.0_drz.fits" # For GDS field
+    # GREEN_IMAGE_PATH = BASE_MOUNT + "goodss_all_wfc3_ir_f125w_060mas_v1.0_drz.fits"
     # # # BLUE_IMAGE_PATH = BASE_MOUNT + "goodss_all_acs_wfc_f814w_060mas_v1.5_drz.fits"
-    # # # BLUE_IMAGE_PATH = BASE_MOUNT + "gs_presm4_all_acs_f606w_60mas_v3.0_drz.fits"
-    # BLUE_IMAGE_PATH = BASE_MOUNT + "cos_2epoch_acs_f606w_060mas_v1.0_drz.fits"
+    # BLUE_IMAGE_PATH = BASE_MOUNT + "gs_presm4_all_acs_f606w_60mas_v3.0_drz.fits"
+    # # BLUE_IMAGE_PATH = BASE_MOUNT + "cos_2epoch_acs_f606w_060mas_v1.0_drz.fits"
 
-    # RED_IMAGE_PATH = BASE_MOUNT + "30mas/" + "uds_all_wfc3_f160w_030mas_v0.5_drz.fits" # For UDS field
-    # GREEN_IMAGE_PATH = BASE_MOUNT + "30mas/" + "uds_all_wfc3_f125w_030mas_v0.5_drz.fits"
-    # BLUE_IMAGE_PATH = BASE_MOUNT + "uds_all_acs_f606w_060mas_v1.0_drz.fits"
 
-    # Check if files exist before running
-    for img_path, name in [ (RED_IMAGE_PATH, "RED"), (GREEN_IMAGE_PATH, "GREEN"), (BLUE_IMAGE_PATH, "BLUE") ]:
-        if os.path.exists(img_path):
-            print(f" {name}: {img_path} exists. File path correctly written. ")
-        else:
-            print(f" {name} NOT FOUND at: {img_path}")
+
+    # # RED_IMAGE_PATH = BASE_MOUNT + "cos_2epoch_wfc3_f160w_060mas_v1.0_drz.fits" # For COS field
+    # # GREEN_IMAGE_PATH = BASE_MOUNT + "cos_2epoch_wfc3_f125w_060mas_v0.1_drz.fits"
+    # # # # BLUE_IMAGE_PATH = BASE_MOUNT + "goodss_all_acs_wfc_f814w_060mas_v1.5_drz.fits"
+    # # # # BLUE_IMAGE_PATH = BASE_MOUNT + "gs_presm4_all_acs_f606w_60mas_v3.0_drz.fits"
+    # # BLUE_IMAGE_PATH = BASE_MOUNT + "cos_2epoch_acs_f606w_060mas_v1.0_drz.fits"
+
+    # # RED_IMAGE_PATH = BASE_MOUNT + "30mas/" + "uds_all_wfc3_f160w_030mas_v0.5_drz.fits" # For UDS field
+    # # GREEN_IMAGE_PATH = BASE_MOUNT + "30mas/" + "uds_all_wfc3_f125w_030mas_v0.5_drz.fits"
+    # # BLUE_IMAGE_PATH = BASE_MOUNT + "uds_all_acs_f606w_060mas_v1.0_drz.fits"
+
+    # # Check if files exist before running
+    # for img_path, name in [ (RED_IMAGE_PATH, "RED"), (GREEN_IMAGE_PATH, "GREEN"), (BLUE_IMAGE_PATH, "BLUE") ]:
+    #     if os.path.exists(img_path):
+    #         print(f" {name}: {img_path} exists. File path correctly written. ")
+    #     else:
+    #         print(f" {name} NOT FOUND at: {img_path}")
     
     # Output directories
     # CUTOUTS_RED_DIR = "cutouts_red"
@@ -371,7 +372,7 @@ if __name__ == "__main__":
     # RGB_OUTPUT_DIR = "rgb_training_data"
     
     # Testing parameters
-    TEST_MODE = True           # Set to False for full run
+    TEST_MODE = False           # Set to False for full run
     TEST_SAMPLE_SIZE = 20      # Number of galaxies to test with
     
     # Match catalogues and add morphology labels
@@ -403,57 +404,73 @@ if __name__ == "__main__":
     # Make cutouts for each filter
     box_radius: int = 48 # So that images are 96 by 96
 
-    print("Making cutouts for each filter")
-    # # Red filter cutouts
-    # In your rgb_filter_images.py, replace the cutout creation:
+    # print("Making cutouts for each filter")
+    # # # Red filter cutouts
+    # # In your rgb_filter_images.py, replace the cutout creation:
 
-    # DEFINE YOUR PATHS (HLSP VERSION - HIGH RESOLUTION!)
-    # BASE_MOUNT = "/Volumes/Research/emcgrath/CANDELS/HLSP_GDS/"
-    BASE_MOUNT = "/Volumes/Research-1/emcgrath/Research/CANDELS_data/mosaics/cos/"
+    # # DEFINE YOUR PATHS (HLSP VERSION - HIGH RESOLUTION!)
+    # # BASE_MOUNT = "/Volumes/Research/emcgrath/CANDELS/HLSP_GDS/"
+    # BASE_MOUNT = "/Volumes/Research-1/emcgrath/Research/CANDELS_data/mosaics/cos/"
 
 
-    image_paths = {
-        'red': RED_IMAGE_PATH,      # field f160w
-        'green': GREEN_IMAGE_PATH,   # field f125w
-        'blue': BLUE_IMAGE_PATH     # field f606w
-    }
+    # image_paths = {
+    #     'red': RED_IMAGE_PATH,      # field f160w
+    #     'green': GREEN_IMAGE_PATH,   # field f125w
+    #     'blue': BLUE_IMAGE_PATH     # field f606w
+    # }
 
-    bands = {
-        'red': RED_FILTER,
-        'green': GREEN_FILTER,
-        'blue': BLUE_FILTER
-    }
+    # bands = {
+    #     'red': RED_FILTER,
+    #     'green': GREEN_FILTER,
+    #     'blue': BLUE_FILTER
+    # }
 
-    output_dirs = {
-        'red': 'cutouts_red',
-        'green': 'cutouts_green',
-        'blue': 'cutouts_blue'
-    }
+    # output_dirs = {
+    #     'red': 'cutouts_red',
+    #     'green': 'cutouts_green',
+    #     'blue': 'cutouts_blue'
+    # }
 
-    # This way, we easily process ALL filters simultaneously in ONE pass!
-    output_files, successful_counts = make_filter_cutouts(
-        catalog=working_catalog,
-        image_paths=image_paths,
-        bands=bands,
-        output_dirs=output_dirs,
-        box_radius=75,          # 150x150 pixel cutouts
-        rootname="candels",
-        overwrite=True,      
-        verbose=True
-    )
+    # # This way, we easily process ALL filters simultaneously in ONE pass!
+    # output_files, successful_counts = make_filter_cutouts(
+    #     catalog=working_catalog,
+    #     image_paths=image_paths,
+    #     bands=bands,
+    #     output_dirs=output_dirs,
+    #     box_radius=75,          # 150x150 pixel cutouts
+    #     rootname="candels",
+    #     overwrite=True,      
+    #     verbose=True
+    # )
 
-    # Check results
-    print(f"\nResults:")
-    for filter_name, count in successful_counts.items():
-        print(f"  {bands[filter_name]}: {count} cutouts created")
+    # # Check results
+    # print(f"\nResults:")
+    # for filter_name, count in successful_counts.items():
+    #     print(f"  {bands[filter_name]}: {count} cutouts created")
 
     # Now make RGBs from the cutouts
     print("\n Making RGB images...")
 
+    DIRECTORY_BASE = "/Volumes/Research/emcgrath/Chidiebere_Okafor_N/Summer_Research_2026"
+
+    red_dir = os.path.join(DIRECTORY_BASE, "cutouts_red")
+    green_dir = os.path.join(DIRECTORY_BASE, "cutouts_green")
+    blue_dir = os.path.join(DIRECTORY_BASE, "cutouts_blue")
+    
+
+    output_dir = "/Users/holyphysics/Downloads/rgb_training_data"
+
+    # red_dir = DIRECTORY_BASE + "/cutouts_red"
+    # green_dir = DIRECTORY_BASE + "/cutouts_green"
+    # blue_dir = DIRECTORY_BASE + "/cutouts_blue"
+
+    # print(os.listdir(blue_dir)[0] )
+
+
     rgb_images = make_rgb_from_matched_catalog(
-        red_dir='cutouts_red',
-        green_dir='cutouts_green',
-        blue_dir='cutouts_blue',
-        output_dir='rgb_training_data',
+        red_dir=red_dir,
+        green_dir=green_dir,
+        blue_dir=blue_dir,
+        output_dir=output_dir,
         matched_catalog=working_catalog
     )
