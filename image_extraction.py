@@ -84,10 +84,17 @@ def gal_image_extraction(input_image_dir, output_file_path, number_of_required_p
                 collected_labels.append(corresponding_image_path)
                 counter["irregular"] += 1
 
+            if content.lower() == "uncertain" and counter["uncertain"] < number_of_required_per_class_extracts:
+
+                corresponding_image_path = labels.replace(".txt", ".png")
+
+                collected_labels.append(corresponding_image_path)
+                counter["uncertain"] += 1
+
     
     # Shuffle the images in the data
     indices_from_collected_labels = list(range( len(collected_labels) ))
-    # print(len(collected_labels))
+    print(len(collected_labels))
     # print(f" Before: { indices_from_collected_labels }")
     random.shuffle(indices_from_collected_labels)
     # print(f" After: { indices_from_collected_labels }")
