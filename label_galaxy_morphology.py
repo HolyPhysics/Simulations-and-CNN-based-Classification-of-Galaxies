@@ -1,13 +1,33 @@
 # I need this for labelling the galaxies for classification
 """
 Author: Chidiebere N. Okafor
+Purpose: This script houses a function whose sole purpose is to convert identified Galaxy Zoo vote fractions
+         following the directions in Brooke Simmon's paper, into morphology classes.
+
+Usage
+-----
+python3 label_galaxy_morphology.py [required positionl arguments] [oprtions]
+
+Positional Arguments
+--------------------
+catalog: str
+    This is a .fits file of the "matched catalogue" the galaxies are drawn from.
+
+Options
+-------
+--smooth_threshold FLOAT      smooth fraction of the galaxies to select (default: 0.8)
+--features_threshold FLOAT      fraction of the galaxies with features close to "rounded with no sign og disc" (default: 0.5)
+--spiral_threshold FLOAT        spiral fraction of the galaxies to select (default: 0.8)
+--irregular_threshold FLOAT     irregular fraction of the galaxies to select (default: 0.5)
+--output, -o STR
+--help, -h
 """
 
 from match_catalogue import catalogue_matcher
 
 
 def add_morphology_classes(catalog, smooth_threshold=0.8, features_threshold=0.5, 
-                           spiral_threshold=0.8, irregular_threshold=0.3): # Go back to Brooke's paper for clarification on the thresholds
+                           spiral_threshold=0.8, irregular_threshold=0.5): # Go back to Brooke's paper for clarification on the thresholds
     """
     Convert Galaxy Zoo vote fractions into morphology classes.
     
