@@ -19,8 +19,15 @@ Options
 --features_threshold FLOAT      fraction of the galaxies with features close to "rounded with no sign og disc" (default: 0.5)
 --spiral_threshold FLOAT        spiral fraction of the galaxies to select (default: 0.8)
 --irregular_threshold FLOAT     irregular fraction of the galaxies to select (default: 0.5)
---output, -o STR
 --help, -h
+
+Example
+-------
+(Since I already have all required arguments outlined in the "if __name__ == '__main__':" part, the following is enough)
+python3 label_galaxy_morphology.py
+
+Otherwise, one can either make this part domant by way of commenting it out and proceed as:
+python3 label_galaxy_morphology.py matched_catalog.fits --smooth_threshold 0.6 features_threshold 0.6
 """
 
 from match_catalogue import catalogue_matcher
