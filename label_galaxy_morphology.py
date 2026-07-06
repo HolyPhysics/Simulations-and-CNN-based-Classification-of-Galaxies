@@ -7,7 +7,7 @@ from match_catalogue import catalogue_matcher
 
 
 def add_morphology_classes(catalog, smooth_threshold=0.8, features_threshold=0.5, 
-                           spiral_threshold=0.5, irregular_threshold=0.5): # Go back to Brooke's paper for clarification on the thresholds
+                           spiral_threshold=0.8, irregular_threshold=0.3): # Go back to Brooke's paper for clarification on the thresholds
     """
     Convert Galaxy Zoo vote fractions into morphology classes.
     
@@ -41,18 +41,20 @@ def add_morphology_classes(catalog, smooth_threshold=0.8, features_threshold=0.5
         features = catalog['gz_features_frac'][i]
         spiral = catalog['gz_spiral_frac'][i]
         irregular = catalog['gz_irregular_frac'][i]
+        number_of_spiral_classifiers = catalog['gz_spiral_count'][i] # Extra recommendation from Table 3 of Brooke's paper.
+        number_of_irregular_classifiers = catalog['gz_irregular_count'][i]
         
         # Classify based on vote thresholds
         # if smooth > smooth_threshold and features < features_threshold:
-        if smooth > smooth_threshold:
+        if smooth >= smooth_threshold:
             morph = "Elliptical"
             clean = True
         # elif features > features_threshold and spiral > spiral_threshold:
-        elif spiral > spiral_threshold:
+        elif (spiral >= spiral_threshold) or (number_of_spiral_classifiers >= 10) or (features >=0.4):
             morph = "Spiral"
             clean = True
         # elif irregular > irregular_threshold:
-        elif irregular > irregular_threshold:
+        elif (irregular > irregular_threshold) or (number_of_irregular_classifiers >=10) or (features >=0.4):
             morph = "Irregular"
             clean = True
         else:
@@ -94,7 +96,7 @@ if __name__ == "__main__":
         output_filename="matched_catalog.fits"
     )
 
-    print(matched_catalog.colnames)
+    # print(matched_catalog.colnames)
     
     # Add morphology classes # The name of the outpus file is "matched_catalog not"
     matched_with_classes = add_morphology_classes(matched_catalog) 
