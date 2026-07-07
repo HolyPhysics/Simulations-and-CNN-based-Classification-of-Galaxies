@@ -146,10 +146,29 @@ def catalogue_matcher(main_catalog_path, ref_catalog_path, field_filter='GDS',
     # Add morphology labels from reference catalog
     # Note: This adds the raw vote fractions - this needs to be converted to classes separately
     if 't00_smooth_or_featured_a0_smooth_weighted_frac' in matched_ref.colnames:
+        # Everyhting t00(for task 00)
         matched_catalog['gz_smooth_frac'] = matched_ref['t00_smooth_or_featured_a0_smooth_weighted_frac']
         matched_catalog['gz_features_frac'] = matched_ref['t00_smooth_or_featured_a1_features_weighted_frac']
+        matched_catalog['gz_artifacts_frac'] = matched_ref['t00_smooth_or_featured_a2_artifact_weighted_frac']
+
+        # Everything t02
+        matched_catalog['gz_clumpy_frac'] = matched_ref['t02_clumpy_appearance_a0_yes_weighted_frac'] # Extra recommendation from Table 3 of Brooke's paper.
+        matched_catalog['gz_not_clumpy_frac'] = matched_ref['t02_clumpy_appearance_a1_no_weighted_frac'] # Another from Brooke's paper 
+        matched_catalog['gz_clumpy_count'] = matched_ref['t02_clumpy_appearance_count'] # Another recommendation from Table 3 of Brooke's paper
+
+        # Everything t09
+        matched_catalog['gz_not_edge_on_frac'] = matched_ref['t09_disk_edge_on_a1_no_weighted_frac']
+
+        # Everything t12
         matched_catalog['gz_spiral_frac'] = matched_ref['t12_spiral_pattern_a0_yes_weighted_frac']
+        matched_catalog['gz_spiral_count'] = matched_ref['t12_spiral_pattern_count'] # Also by Brooke's recommendation
+
+        #Everything t16
+        matched_catalog['gz_merging_frac'] = matched_ref['t16_merging_tidal_debris_a0_merging_weighted_frac']
+        matched_catalog['gz_tidal_debris_frac'] = matched_ref['t16_merging_tidal_debris_a1_tidal_debris_weighted_frac']
         matched_catalog['gz_irregular_frac'] = matched_ref['t04_clump_configuration_a2_cluster_or_irregular_weighted_frac']
+
+        #Capturing the "more informative" Galaxy Zoo ID for potential image creation and naming.
         matched_catalog['gz_id'] = matched_ref['ID']
 
         # galaxy_id = None
