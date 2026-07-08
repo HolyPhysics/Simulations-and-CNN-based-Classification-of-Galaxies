@@ -166,7 +166,10 @@ def catalogue_matcher(main_catalog_path, ref_catalog_path, field_filter='GDS',
         #Everything t16
         matched_catalog['gz_merging_frac'] = matched_ref['t16_merging_tidal_debris_a0_merging_weighted_frac']
         matched_catalog['gz_tidal_debris_frac'] = matched_ref['t16_merging_tidal_debris_a1_tidal_debris_weighted_frac']
-        matched_catalog['gz_irregular_frac'] = matched_ref['t04_clump_configuration_a2_cluster_or_irregular_weighted_frac']
+        matched_catalog['gz_both_frac'] = matched_ref['t16_merging_tidal_debris_a2_both_weighted_frac']
+        matched_catalog['gz_neither_frac'] = matched_ref['t16_merging_tidal_debris_a3_neither_weighted_frac']
+        matched_catalog['gz_task16_count'] = matched_ref['t16_merging_tidal_debris_count']
+        # matched_catalog['gz_irregular_frac'] = matched_ref['t04_clump_configuration_a2_cluster_or_irregular_weighted_frac']
 
         #Capturing the "more informative" Galaxy Zoo ID for potential image creation and naming.
         matched_catalog['gz_id'] = matched_ref['ID']
