@@ -609,8 +609,8 @@ def make_filter_cutouts(catalog, image_paths, bands, output_dirs,
 
 if __name__ == "__main__":
     # Set up for testing the code:
-    # BASE_MOUNT = "/Volumes/Research/emcgrath/Research/CANDELS_data/mosaics/gds/"
-    BASE_MOUNT = "/Research/emcgrath/Research/CANDELS_data/mosaics/gds/" # This is how to run it for NSCC(Natural Science Computing Cluster)
+    BASE_MOUNT = "/Volumes/Research/emcgrath/Research/CANDELS_data/mosaics/gds/"
+    # BASE_MOUNT = "/Research/emcgrath/Research/CANDELS_data/mosaics/gds/" # This is how to run it for NSCC(Natural Science Computing Cluster)
 
     
     MATCHED_CATALOG = "matched_catalog.fits"
@@ -648,14 +648,14 @@ if __name__ == "__main__":
             print(f"{name.upper()} NOT FOUND at: {path}")
     
     catalog = Table.read(MATCHED_CATALOG)
-    test_sample = catalog[:5]
+    test_sample = catalog[:22]
     
     results = make_filter_cutouts(
         catalog=test_sample,
         image_paths=image_paths,
         bands=bands,
         output_dirs=output_dirs,
-        box_radius=103.5,
+        box_radius=48,
         rootname="candels",
         overwrite=True,
         verbose=True

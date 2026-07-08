@@ -125,7 +125,7 @@ def ZCA_whitening(image_path, output_path, regularization_constant = 1e-4) -> No
         '''
         I can convert to only RGB using Image.open(img_path).convert('RGB') if the 
         Alpha channel is not needed or using an if channel = 4 images = images[:,:,:, :3]
-        #comment the above out when dealing with images of different shapes
+        # comment the above out when dealing with images of different shapes
         '''
         # print(f"\n {image}")
         image_array = np.array(image, dtype=np.float32) # This is a 3-dimensional array of a single image
@@ -218,14 +218,17 @@ if __name__ == "__main__":
     # image_path = "random_images_from_the_internet"  # Uncomment the code below when working with images of different shapes
     # output_path = "ZCA_whitened_random_images"
 
-    image_path = "rgb_training_data" # These images are of the same dimensions as the filter_cutouts function makes them all of the same height and width
-    output_path = "ZCA_whitened_images"
+    # image_path = "rgb_training_data/Images" # These images are of the same dimensions as the filter_cutouts function makes them all of the same height and width
+    # output_path = "ZCA_whitened_images"
 
+    image_path = "/Users/holyphysics/Downloads/rgb_training_data/Images" # These images are of the same dimensions as the filter_cutouts function makes them all of the same height and width
+    output_path = "/Users/holyphysics/Downloads/ZCA_whitened_images"
+    # /Volumes/Research/emcgrath/Chidiebere_Okafor_N/Summer_Research_2026/rgb_training_data
     zca_images = ZCA_whitening(image_path, output_path)
     # print(zca_images)
 
     plt.figure(figsize=(10, 10))
-    plt.imshow(zca_images[0][:,:,1], cmap='viridis')  # Shows first channel
+    plt.imshow(zca_images[4][:,:,0], cmap='jet')  # Shows first channel
     plt.colorbar()
     plt.title("ZCA Whitened - First Channel")
     plt.show()

@@ -1,7 +1,7 @@
 # I need this for labelling the galaxies for classification
 """
 Author: Chidiebere N. Okafor
-Purpose: This script houses a function whose sole purpose is to convert identified Galaxy Zoo vote fractions
+Purpose: This script houses a function whose sole purpose is to convert identified Galaxy Zoo vote fractions,
          following the directions in Brooke Simmon's paper, into morphology classes.
 
 Usage
@@ -26,12 +26,11 @@ Example
 (Since I already have all required arguments outlined in the "if __name__ == '__main__':" part, the following is enough)
 python3 label_galaxy_morphology.py
 
-Otherwise, one can either make this part domant by way of commenting it out and proceed as:
+Otherwise, one can either make this part domant, by way of commenting it out, and proceed as:
 python3 label_galaxy_morphology.py matched_catalog.fits --smooth_threshold 0.6 features_threshold 0.6
 """
 
 from match_catalogue import catalogue_matcher
-
 
 def add_morphology_classes(catalog, smooth_threshold=0.8, features_threshold=0.5, 
                            spiral_threshold=0.8, irregular_threshold=0.5): # Go back to Brooke's paper for clarification on the thresholds
@@ -64,24 +63,49 @@ def add_morphology_classes(catalog, smooth_threshold=0.8, features_threshold=0.5
     clean_flags = []
     
     for i in range(len(catalog)):
-        smooth = catalog['gz_smooth_frac'][i]
-        features = catalog['gz_features_frac'][i]
-        spiral = catalog['gz_spiral_frac'][i]
-        irregular = catalog['gz_irregular_frac'][i]
+        f_smooth = catalog['gz_smooth_frac'][i]
+        f_features = catalog['gz_features_frac'][i]
+        f_artifacts = catalog['gz_artifacts_frac'][i]
+
+        f_spiral = catalog['gz_spiral_frac'][i]
         number_of_spiral_classifiers = catalog['gz_spiral_count'][i] # Extra recommendation from Table 3 of Brooke's paper.
-        number_of_irregular_classifiers = catalog['gz_irregular_count'][i]
+
+        f_clumpy = catalog['gz_clumpy_frac'][i]
+        f_not_clumpy = catalog['gz_not_clumpy_frac'][i]
+        number_of_clumpy_classifiers = catalog['gz_clumpy_count'][i]
+        
+        f_not_edge_on = catalog['gz_not_edge_on_frac'][i]
+
+        f_merging = safe_column(catalog,'gz_merging_frac')[i]
+        f_tidal_debris = safe_column(catalog,'gz_tidal_debris_frac')[i]
+        f_merging_tidal = f_merging + f_tidal_debris
+
+        # As directed/identified in the paper, we first exclude artifacts.
+        # if f_artifacts >= 0.5:
+        #     morph = "Uncertain"
+        #     clean = False
+        #     morphology.append(morph)
+        #     clean_flags.append(clean)
+        #     continue
         
         # Classify based on vote thresholds
         # if smooth > smooth_threshold and features < features_threshold:
-        if smooth >= smooth_threshold:
+        if f_smooth >= 0.8:
             morph = "Elliptical"
             clean = True
         # elif features > features_threshold and spiral > spiral_threshold:
-        elif (spiral >= spiral_threshold) or (number_of_spiral_classifiers >= 10) or (features >=0.4):
+        elif (f_features >= 0.4 and 
+            # f_not_clumpy >= 0.3 and
+            f_not_edge_on >= 0.5 and
+            f_spiral >= 0.8 #and number_of_spiral_classifiers >= 10
+            ):
             morph = "Spiral"
             clean = True
         # elif irregular > irregular_threshold:
-        elif (irregular > irregular_threshold) or (number_of_irregular_classifiers >=10) or (features >=0.4):
+        elif (f_features >= 0.4 and
+            # f_smooth < 0.5 and
+            # f_spiral < 0.5 and
+            f_clumpy >= 0.4):
             morph = "Irregular"
             clean = True
         else:
@@ -107,6 +131,14 @@ def add_morphology_classes(catalog, smooth_threshold=0.8, features_threshold=0.5
 
 
 
+def safe_column(table, colname, default=0.0):
+    """Return a column from an Astropy Table, or an array of `default` if missing."""
+    if colname in table.colnames:
+        return table[colname]
+    else:
+        return np.full(len(table), default)
+
+
 
 if __name__ == "__main__":
   
@@ -129,7 +161,7 @@ if __name__ == "__main__":
     matched_with_classes = add_morphology_classes(matched_catalog) 
     
     # Save the fully classified catalog
-    matched_with_classes.write("morphology_matched_catalog.fits", overwrite=True)
+    matched_with_classes.write("matched_catalog.fits", overwrite=True)
     print(matched_with_classes['morphology'])
     
     print("\n Done!")
