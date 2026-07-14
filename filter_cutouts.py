@@ -187,7 +187,7 @@ def make_filter_cutouts(catalog, image_paths, bands, output_dirs,
             raise
     
     if verbose:
-        print(f"\nAll files opened in {time.time() - start_time:.1f} seconds\n")
+        print(f"\n All files opened in {time.time() - start_time:.1f} seconds\n")
     
     # Process each galaxy
     box_size_pixels = int(box_radius * 2)
@@ -613,7 +613,7 @@ if __name__ == "__main__":
     # BASE_MOUNT = "/Research/emcgrath/Research/CANDELS_data/mosaics/gds/" # This is how to run it for NSCC(Natural Science Computing Cluster)
 
     
-    MATCHED_CATALOG = "matched_catalog.fits"
+    MATCHED_CATALOG = "matched_catalog.fits" # Add the matched catalogue to the server and grab it's path here.
     
     RED_FILTER = "f160w"
     GREEN_FILTER = "f125w"
@@ -636,9 +636,9 @@ if __name__ == "__main__":
     }
 
     output_dirs = {
-        'red': "cutouts_red",
-        'green': "cutouts_green",
-        'blue': "cutouts_blue"
+        'red': "new_cutouts_red",
+        'green': "new_cutouts_green",
+        'blue': "new_cutouts_blue"
     }
     
     for name, path in image_paths.items():
@@ -655,7 +655,7 @@ if __name__ == "__main__":
         image_paths=image_paths,
         bands=bands,
         output_dirs=output_dirs,
-        box_radius=48,
+        box_radius=300,
         rootname="candels",
         overwrite=True,
         verbose=True
