@@ -74,7 +74,7 @@ def match_psfs_with_provided_psfs(red_data, green_data, blue_data,
         PSF-matched images
     """
     
-    print("\n Loading PSF files...")
+    # print("\n Loading PSF files...")
     
     # This loads the PSFs
     psf_red = load_psf_from_file(psf_red_path)
@@ -110,4 +110,3 @@ def match_psfs_with_provided_psfs(red_data, green_data, blue_data,
     # print("\n PSF matching complete!")
     
     return matched_red, matched_green, matched_blue
-      
