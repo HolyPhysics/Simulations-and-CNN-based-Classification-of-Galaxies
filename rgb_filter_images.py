@@ -41,11 +41,15 @@ Workflow:
 
 
 
-BASE_PSF_PATH = "/Volumes/Research/emcgrath/CANDELS/psfs/" 
+BASE_PSF_PATH = "/Volumes/Research/emcgrath/CANDELS/psfs/"  
 
 psf_red_path = BASE_PSF_PATH + "gds_60mas_wfc3_hybrid/" + "gs_deep_f160w_v0.5_psf.fits" ## These are for GDS
 psf_green_path = BASE_PSF_PATH + "gds_60mas_wfc3_hybrid/" + "gs_deep_f125w_v0.5_psf.fits"
 psf_blue_path = BASE_PSF_PATH + "gds_60mas_acs_yicheng/" + "gs_psf_ss_acs_i_bkgsub.fits"
+
+# psf_red_path   = "/export2/groups/emcgrath/cnokaf28/gs_deep_f160w_v0.5_psf.fits" # These are for running through the NSCC
+# psf_green_path = "/export2/groups/emcgrath/cnokaf28/gs_deep_f125w_v0.5_psf.fits"
+# psf_blue_path  = "/export2/groups/emcgrath/cnokaf28/gs_psf_ss_acs_i_bkgsub.fits"
 
 
 # psf_red_path = BASE_PSF_PATH + "cos_60mas_wfc3_hybrid/" + "cos_2epoch_f160w_v0.5_psf.fits" # for COS
@@ -67,7 +71,8 @@ BLUE_FILTER = "f814w"
 
 #  Find the optimal combination of values for stretch and Q to best bring out wanted features for CNN training
 def make_rgb_from_matched_catalog(red_dir, green_dir, blue_dir, output_dir, 
-                                  matched_catalog, stretch=0.5, Q=1.5, # S:0.3 and Q:8 did someworth decent
+                                  matched_catalog, stretch=0.4, Q=4, # S:0.3 and Q:8 did someworth decent 
+                                  # The combination of the stretch=0.4 and Q=4 above produced slightly better images. Not significantly better, but better still. 
                                   psf_red_path=psf_red_path,
                                   psf_green_path=psf_green_path,
                                   psf_blue_path=psf_blue_path,
@@ -135,9 +140,10 @@ def make_rgb_from_matched_catalog(red_dir, green_dir, blue_dir, output_dir,
     
     rgb_paths = []
     successful = 0
+    failed = 0
     missing_files = 0
     
-    for idx in range(len(matched_catalog)): # I can use the tqdm code progression runner here!
+    for idx in tqdm( range(len(matched_catalog)), desc="Creating RGBs" ): # I can use the tqdm code progression runner here!
         # print(f'\n \n { matched_catalog[id_col] } Code for "galaxy_id = Matched_catalog[id_col]" ') # comment out when needed
         galaxy_id = matched_catalog[id_col][idx]
         # print(f'\n \n \n {galaxy_id} vs { matched_catalog["gz_id"] if 't00_smooth_or_featured_a0_smooth_weighted_frac' in matched_catalog.colnames else 0}')
@@ -152,14 +158,23 @@ def make_rgb_from_matched_catalog(red_dir, green_dir, blue_dir, output_dir,
         if not all(os.path.exists(f) for f in [red_file, green_file, blue_file]):
             missing_files += 1
             if missing_files < 10:  # Only print first few missing
-                print(f"  Missing files for galaxy {galaxy_id}, skipping...")
+                print(f" Missing files for galaxy {galaxy_id}, skipping...")
             continue
         
-        # Load FITS data. Coverts the .fits files into numpy arrays.
-        red_data = fits.getdata(red_file)
-        # green_data = fits.getdata(green_file)
-        green_data = fits.getdata(green_file, memmap=False)
-        blue_data = fits.getdata(blue_file)
+        # # Load FITS data. Coverts the .fits files into numpy arrays.
+        # red_data = fits.getdata(red_file, memmap=False)
+        # # green_data = fits.getdata(green_file)
+        # green_data = fits.getdata(green_file, memmap=False)
+        # blue_data = fits.getdata(blue_file, memmap=False)
+
+        # Safe reading
+        red_data = safe_read_fits(red_file, memmap=False)
+        green_data = safe_read_fits(green_file, memmap=False)
+        blue_data = safe_read_fits(blue_file, memmap=False)
+
+        if any(d is None for d in [red_data, green_data, blue_data]):
+            missing_files += 1
+            continue
 
         # Ensure all images are the same size
         # if blue_data.shape != red_data.shape:
@@ -167,20 +182,26 @@ def make_rgb_from_matched_catalog(red_dir, green_dir, blue_dir, output_dir,
         #     blue_data = resize(blue_data, red_data.shape, preserve_range=True)
 
         # Do psf_matching here before moving on with the rest of the image processing.
+        red_norm = 4/3 
+        green_norm = 1
+        blue_norm = 4/3
+
         try:
             red_data, green_data, blue_data = match_psfs_with_provided_psfs(
-                red_data, green_data, blue_data,
+                red_norm*red_data, green_norm*green_data, blue_norm*blue_data,
                 psf_red_path, psf_green_path, psf_blue_path)
             
-            print("PSF matching is working. Keep at it...")
+            # print("PSF matching is working. Keep at it...")
         except Exception as e:
-            print(f"PSF matching failed for galaxy {galaxy_id}: {e}")
+            print(f"PSF matching failed for galaxy {galaxy_id}: {e}", flush=True) # I want to be alerted immediately!
+            # print(f"PSF matching failed for galaxy {galaxy_id}: {e}")
             continue
-        
+
         # # Clean the data (remove NaNs, infinities, negative values)
-        red_data = 4/3*np.nan_to_num(red_data, nan=0.0, posinf=0.0, neginf=0.0)
+
+        red_data = np.nan_to_num(red_data, nan=0.0, posinf=0.0, neginf=0.0)
         green_data = np.nan_to_num(green_data, nan=0.0, posinf=0.0, neginf=0.0)
-        blue_data = 4/3*np.nan_to_num(blue_data, nan=0.0, posinf=0.0, neginf=0.0)
+        blue_data = np.nan_to_num(blue_data, nan=0.0, posinf=0.0, neginf=0.0)
         
         # # Clip negative values to zero (flux should be non-negative). Uncomment this after checking the effect on the data
         red_data = np.maximum(red_data, 0)
@@ -188,14 +209,18 @@ def make_rgb_from_matched_catalog(red_dir, green_dir, blue_dir, output_dir,
         blue_data = np.maximum(blue_data, 0)
 
         # print(f"\n Red data shape is: {red_data.shape}") 
-        # red_data = red_data[270:330, 270:330]. # Didn't need to work with this any longer. 
+        # red_data = red_data[270:330, 270:330] # I decided to settle for this as it's much more computationally non_intensive
+        # green_data = green_data[270:330, 270:330]
+        # blue_data = blue_data[270:330, 270:330] # Didn't need to work with this any longer. 
         # # But in the situation where it becomes necesaary, the values in this tuple indexing
         # # were selected by assuming that the images where 600 x 600 and we wanted the middle 6th(I forget what the number was)
         # # of the data.
 
         # Check if all data is zero (skip if empty)
         if np.all(red_data == 0) and np.all(green_data == 0) and np.all(blue_data == 0):
-            print(f"  Galaxy {galaxy_id}: all data is zero, skipping...")
+            print(f"  Galaxy {galaxy_id}: all data is zero, skipping...", flush=True) # I want instant alert!
+            # print(f"  Galaxy {galaxy_id}: all data is zero, skipping...")
+
             failed += 1
             continue
         
@@ -232,6 +257,9 @@ def make_rgb_from_matched_catalog(red_dir, green_dir, blue_dir, output_dir,
         #         maximum = val
 
         # rgb_array = make_rgb(red_data, green_data, blue_data, interval=ManualInterval(vmin=0, vmax=maximum) )
+        # stretch = 1.0*np.max(green_data) # Was producing a stretch for every image and the images were so much worse that when stretch=0.4
+    
+        print(f"Stretch is: {stretch}", flush=True)
         rgb_array = make_lupton_rgb(red_data, green_data, blue_data, stretch=stretch, Q=Q)
 
         # stretch_obj = LuptonAsinhZscaleStretch([red_data, green_data, blue_data], Q=8)
@@ -258,7 +286,7 @@ def make_rgb_from_matched_catalog(red_dir, green_dir, blue_dir, output_dir,
 
         # Save as PNG
         # print(matched_catalog["gz_id"][idx])
-        output_path = os.path.join(image_dir, f"galaxy_{matched_catalog["gz_id"][idx].strip()}.png") # names the pdf with the more informative ref_catalog id which includes the field.
+        output_path = os.path.join(image_dir, f"galaxy_{matched_catalog['gz_id'][idx].strip()}.png") # names the pdf with the more informative ref_catalog id which includes the field.
         plt.imsave(output_path, rgb_array) # The .strip function above removes all leading and trailing spaces. Keeps the naming clean and tight.
         rgb_paths.append(output_path)
         
@@ -266,15 +294,17 @@ def make_rgb_from_matched_catalog(red_dir, green_dir, blue_dir, output_dir,
         if 'morphology' in matched_catalog.colnames:
             morphology = matched_catalog['morphology'][idx]
             # label_file = output_path.replace('.png','.txt') # Removes all ".png" within the string entirely with "_label.txt".
-            label_file = os.path.join(label_dir, f"galaxy_{matched_catalog["gz_id"][idx].strip()}.txt") # Removes all ".png" within the string entirely with "_label.txt".
+            label_file = os.path.join(label_dir, f"galaxy_{matched_catalog['gz_id'][idx].strip()}.txt") # Removes all ".png" within the string entirely with "_label.txt".
             with open(label_file, 'w') as f:
                 f.write(morphology)
+        else:
+            print("Morphology is not in the matched catalog")
         
         successful += 1
         
         # Print progress every 100 galaxies
         if successful % 100 == 0:
-            print(f"  Processed {successful} galaxies...")
+            print(f"  Processed {successful} galaxies..., and {failed} failed.")
     
 
     # print("\n Some data to keep track of the RGB creation")
@@ -318,28 +348,42 @@ def test_small_sample(catalog, sample_size=5) -> List[str]:
 
 
 
+def safe_read_fits(filepath, memmap=False):
+    if not os.path.isfile(filepath):
+        print(f"    File not found: {filepath}")
+        return None
+    if os.path.getsize(filepath) == 0:
+        print(f"    File is empty: {filepath}")
+        return None
+    try:
+        return fits.getdata(filepath, memmap=memmap)
+    except Exception as e:
+        print(f"    Failed to read {filepath}: {e}")
+        return None
+
+
 
 
 if __name__ == "__main__":
     # Set up for testing the code for files stored on the SMB server:
     # First connect to colby smb serve and login so that the drive mounts to /Volumes/Research/
 
-    BASE_MOUNT = "/Volumes/Research/emcgrath/Research/CANDELS_data/mosaics/gds/" # This is readable by Python. For GDS field
+    # BASE_MOUNT = "/Volumes/Research/emcgrath/Research/CANDELS_data/mosaics/gds/" # This is readable by Python. For GDS field
     # BASE_MOUNT = "/Volumes/Research/emcgrath/CANDELS/HLSP_GDS/" # For HLSP files
     # BASE_MOUNT = "/Volumes/Research-1/emcgrath/Research/CANDELS_data/mosaics/cos/"
     # BASE_MOUNT = "/Volumes/Research-1/emcgrath/Research/CANDELS_data/mosaics/uds/"
 
-    # Input data paths
+    # # Input data paths
     MAIN_CATALOG_PATH = "/Users/holyphysics/Desktop/Galaxy_Classification/gds_merged_v1.1.fits" # For GDS
-    # MAIN_CATALOG_PATH = "/Users/holyphysics/Desktop/Galaxy_Classification/cos_merged_v1.1.fits" # For COS
-    # MAIN_CATALOG_PATH = "/Users/holyphysics/Desktop/Galaxy_Classification/uds_merged_v1.1.fits" # For UDS
+    # # MAIN_CATALOG_PATH = "/Users/holyphysics/Desktop/Galaxy_Classification/cos_merged_v1.1.fits" # For COS
+    # # MAIN_CATALOG_PATH = "/Users/holyphysics/Desktop/Galaxy_Classification/uds_merged_v1.1.fits" # For UDS
 
     REF_CATALOG_PATH = "/Users/holyphysics/Desktop/Galaxy_Classification/gz_candels_table_2_main_release.fits"
     
-    # # Paths to FITS images for each filter 
-    RED_IMAGE_PATH = BASE_MOUNT + "goodss_all_wfc3_ir_f160w_060mas_v1.0_drz.fits" # For GDS field
-    GREEN_IMAGE_PATH = BASE_MOUNT + "goodss_all_wfc3_ir_f125w_060mas_v1.0_drz.fits"
-    BLUE_IMAGE_PATH = BASE_MOUNT + "goodss_all_acs_wfc_f814w_060mas_v1.5_drz.fits"
+    # # # Paths to FITS images for each filter 
+    # RED_IMAGE_PATH = BASE_MOUNT + "goodss_all_wfc3_ir_f160w_060mas_v1.0_drz.fits" # For GDS field
+    # GREEN_IMAGE_PATH = BASE_MOUNT + "goodss_all_wfc3_ir_f125w_060mas_v1.0_drz.fits"
+    # BLUE_IMAGE_PATH = BASE_MOUNT + "goodss_all_acs_wfc_f814w_060mas_v1.5_drz.fits"
     # BLUE_IMAGE_PATH = BASE_MOUNT + "gs_presm4_all_acs_f606w_60mas_v3.0_drz.fits"
     # # BLUE_IMAGE_PATH = BASE_MOUNT + "cos_2epoch_acs_f606w_060mas_v1.0_drz.fits"
 
@@ -360,8 +404,8 @@ if __name__ == "__main__":
     #     else:
     #         print(f" {name} NOT FOUND at: {img_path}")
     
-    # Testing parameters
-    TEST_MODE = True           # Set to False for full run
+    # # Testing parameters
+    TEST_MODE = False           # Set to False for full run
     TEST_SAMPLE_SIZE = 20      # Number of galaxies to test with
     
     # Match catalogues and add morphology labels
@@ -377,9 +421,9 @@ if __name__ == "__main__":
         output_filename="matched_catalog.fits"
     )
     
-    # Note: You'll need to add morphology classification here
-    # For now, we'll proceed with the matched catalog
-    # Create test sample (for debugging)
+    # # Note: You'll need to add morphology classification here
+    # # For now, we'll proceed with the matched catalog
+    # # Create test sample (for debugging)
     morphology_matched_catalog = add_morphology_classes(matched_catalog)
     
     
@@ -391,41 +435,41 @@ if __name__ == "__main__":
     
 
     # Make cutouts for each filter
-    box_radius_for_cutouts: int = 75 # So that images are 96 by 96
+    # box_radius_for_cutouts: int = 75 # So that images are 96 by 96
 
     # print("Making cutouts for each filter")
     # # # Red filter cutouts
     # # In your rgb_filter_images.py, replace the cutout creation:
 
-    image_paths_for_cutouts = {
-        'red': RED_IMAGE_PATH,      # field f160w
-        'green': GREEN_IMAGE_PATH,   # field f125w
-        'blue': BLUE_IMAGE_PATH     # field f814w
-    }
+    # image_paths_for_cutouts = {
+    #     'red': RED_IMAGE_PATH,      # field f160w
+    #     'green': GREEN_IMAGE_PATH,   # field f125w
+    #     'blue': BLUE_IMAGE_PATH     # field f814w
+    # }
 
-    bands_for_cutouts = {
-        'red': RED_FILTER,
-        'green': GREEN_FILTER,
-        'blue': BLUE_FILTER
-    }
+    # bands_for_cutouts = {
+    #     'red': RED_FILTER,
+    #     'green': GREEN_FILTER,
+    #     'blue': BLUE_FILTER
+    # }
 
-    output_dirs_for_cutouts = {
-        'red': 'cutouts_red',
-        'green': 'cutouts_green',
-        'blue': 'cutouts_blue'
-    }
+    # output_dirs_for_cutouts = {
+    #     'red': 'cutouts_red',
+    #     'green': 'cutouts_green',
+    #     'blue': 'cutouts_blue'
+    # }
 
     # This way, we easily process ALL filters simultaneously in ONE pass!
-    output_files, successful_counts = make_filter_cutouts(
-        catalog=working_catalog_for_cutouts,
-        image_paths=image_paths_for_cutouts,
-        bands=bands_for_cutouts,
-        output_dirs=output_dirs_for_cutouts,
-        box_radius=box_radius_for_cutouts,          # 150x150 pixel cutouts
-        rootname="candels",
-        overwrite=True,      
-        verbose=True
-    )
+    # output_files, successful_counts = make_filter_cutouts(
+    #     catalog=working_catalog_for_cutouts,
+    #     image_paths=image_paths_for_cutouts,
+    #     bands=bands_for_cutouts,
+    #     output_dirs=output_dirs_for_cutouts,
+    #     box_radius=box_radius_for_cutouts,          # 150x150 pixel cutouts
+    #     rootname="candels",
+    #     overwrite=True,      
+    #     verbose=True
+    # )
 
     # # Check results
     # print(f"\nResults:")
@@ -435,20 +479,32 @@ if __name__ == "__main__":
     # Now make RGBs from the cutouts
     print("\n Making RGB images...")
 
-    # DIRECTORY_BASE = "/Volumes/Research/emcgrath/Chidiebere_Okafor_N/Summer_Research_2026"
+    # DIRECTORY_BASE = "/export2/groups/emcgrath/cnokaf28/"
+    DIRECTORY_BASE = "/Volumes/Research/emcgrath/Chidiebere_Okafor_N/Summer_Research_2026/" 
 
-    red_dir_for_rgb = "cutouts_red"       # os.path.join(DIRECTORY_BASE, "cutouts_red")
-    green_dir_for_rgb = "cutouts_green"         # os.path.join(DIRECTORY_BASE, "cutouts_green")
-    blue_dir_for_rgb = "cutouts_blue"      # os.path.join(DIRECTORY_BASE, "cutouts_blue")
+    # DIRECTORY_BASE = "/Research/emcgrath/Chidiebere_Okafor_N/Summer_Research_2026/" # for running code on NSCC 
+
+    # red_dir_for_rgb = "new_cutouts_red"       # os.path.join(DIRECTORY_BASE, "cutouts_red")
+    # green_dir_for_rgb = "new_cutouts_green"         # os.path.join(DIRECTORY_BASE, "cutouts_green")
+    # blue_dir_for_rgb = "new_cutouts_blue"      # os.path.join(DIRECTORY_BASE, "cutouts_blue")
     
+    # output_dir_for_rgb = "/export2/groups/emcgrath/cnokaf28/new_rgb_training_data" # How it's done for the NSCC node
+    output_dir_for_rgb = "/Users/holyphysics/Downloads/new_rgb_training_data" # /Users/holyphysics/Downloads/rgb_training_data"
 
-    output_dir_for_rgb = "rgb_training_data" # /Users/holyphysics/Downloads/rgb_training_data"
+    red_dir_for_rgb = DIRECTORY_BASE + "cutouts_red"
+    green_dir_for_rgb = DIRECTORY_BASE + "cutouts_green"
+    blue_dir_for_rgb = DIRECTORY_BASE + "cutouts_blue"
+    # /Volumes/Research/emcgrath/Chidiebere_Okafor_N/Summer_Research_2026
 
-    # red_dir = DIRECTORY_BASE + "/cutouts_red"
-    # green_dir = DIRECTORY_BASE + "/cutouts_green"
-    # blue_dir = DIRECTORY_BASE + "/cutouts_blue"
+    # /Volumes/Research/emcgrath/Chidiebere_Okafor_N/Summer_Research_2026
 
     # print(os.listdir(blue_dir)[0] )
+
+    # working_catalog_for_cutouts = "/Users/holyphysics/Desktop/Galaxy_Classification/matched_catalog.fits"
+    # # working_catalog_for_cutouts = "/export2/groups/emcgrath/cnokaf28/matched_catalog.fits" # # For running on the NSCC cluster
+    # working_catalog_for_cutouts = Table.read(working_catalog_for_cutouts) # # To ensure the catalog is read in before proceeding with the rest of the code.
+
+    print("Catalog correctly read in", flush=True)
 
     rgb_images = make_rgb_from_matched_catalog(
         red_dir=red_dir_for_rgb,
@@ -457,3 +513,4 @@ if __name__ == "__main__":
         output_dir=output_dir_for_rgb,
         matched_catalog=working_catalog_for_cutouts
     )
+# /Users/holyphysics/Desktop/Galaxy_Classification/matched_catalog.fits
