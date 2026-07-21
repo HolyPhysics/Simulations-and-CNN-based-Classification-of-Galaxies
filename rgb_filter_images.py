@@ -1,5 +1,5 @@
 ''' 
-Author: Chidiebere N. Okafor
+Author: Chidiebere N. Okafor & Prof. Elizabeth McGrath
 
 Workflow for this file:
 1. Match catalogue by RA/Dec to get a consistent list of galaxies to work with
