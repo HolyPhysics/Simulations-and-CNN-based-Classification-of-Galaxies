@@ -420,6 +420,17 @@ if __name__ == "__main__":
         save_output=True,
         output_filename="matched_catalog.fits"
     )
+
+    f160w_magnitude = -2.5*np.log10(matched_catalog["FLUX_AUTO_F160W"]) + 23.9
+
+    # print(f160w_magnitude)
+
+    desired_indices = np.where(f160w_magnitude <= 23.5)[0] # Why is it called g?
+    # print(g)
+    # print(f"The length is: { len(g) }")
+    matched_catalog = matched_catalog[desired_indices]
+    # print(matched_catalog.colnames)
+
     
     # # Note: You'll need to add morphology classification here
     # # For now, we'll proceed with the matched catalog
@@ -489,7 +500,7 @@ if __name__ == "__main__":
     # blue_dir_for_rgb = "new_cutouts_blue"      # os.path.join(DIRECTORY_BASE, "cutouts_blue")
     
     # output_dir_for_rgb = "/export2/groups/emcgrath/cnokaf28/new_rgb_training_data" # How it's done for the NSCC node
-    output_dir_for_rgb = "/Users/holyphysics/Downloads/new_rgb_training_data" # /Users/holyphysics/Downloads/rgb_training_data"
+    output_dir_for_rgb = "/Users/holyphysics/Downloads/magnitude_cut_rgb_training_data" # /Users/holyphysics/Downloads/rgb_training_data"
 
     red_dir_for_rgb = DIRECTORY_BASE + "cutouts_red"
     green_dir_for_rgb = DIRECTORY_BASE + "cutouts_green"
