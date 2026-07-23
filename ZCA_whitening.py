@@ -67,18 +67,19 @@ def ZCA_whitening(image_path, output_path, regularization_constant = 1e-4) -> No
 
     Parameters: 
     ----------
-    image_path:
-        descriptions
-    ouput_path:
-        desc
-    regularization_constant:
-        desc
+    image_path: str
+        This is a/the "folder" containing ALL images to be used for the training of the CNN
+    ouput_path: str
+        The folder with all "ZCA whitened" training images. 
+    regularization_constant: float
+        A regulatization constant employed in the computation of the inverse of the DIAGONALIZED 
+        Covariance matrix of the pixels of the channels of the training images 
     
-
 
     Return:
     -------
-
+    tuple: 
+        ZCA-whitened images
 
 
     Notes:
