@@ -19,10 +19,18 @@ def gal_image_extraction(input_image_dir, output_file_path, number_of_required_p
     """
     Parameters
     ----------
+    input_image_dir: str
+        The subfolder in the training data folder containing the training images
+    output_file_path: str 
+        Folder containing the extracted images for classification
+    number_of_required_per_class_extracts: int
+        The desifnated predetermined value for the number of galaxies to select, for classification, 
+        from each class.
 
 
     Return
     ------
+    This functions doesn't return any item
 
     """
 
@@ -132,8 +140,8 @@ def gal_image_extraction(input_image_dir, output_file_path, number_of_required_p
 
 if __name__ == "__main__":
 
-    input_image_dir = "/Users/holyphysics/Downloads/rgb_training_data"
-    ouput_dir = "images_to_be_classified"
+    input_image_dir = "/Users/holyphysics/Downloads/magnitude_cut_rgb_training_data"
+    ouput_dir = "new_images_to_be_classified"
     number_of_required_per_class_extracts = 100
 
     gal_image_extraction(input_image_dir, ouput_dir, number_of_required_per_class_extracts)
