@@ -61,7 +61,7 @@ def normalize_image_robust(image_array, percentile=1):
         return np.zeros_like(image_array, dtype=np.uint8)
 
 
-def ZCA_whitening(image_path, output_path, regularization_constant = 1e-4) -> None: # Change this to the appropriate type annotation later
+def ZCA_whitening(image_path, output_path, regularization_constant = 1e-4) -> Tuple: # Change this to the appropriate type annotation later
     """
     some notes here
 
