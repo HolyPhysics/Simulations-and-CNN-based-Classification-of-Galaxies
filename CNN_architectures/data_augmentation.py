@@ -13,6 +13,11 @@ from PIL import Image
 import matplotlib.pyplot as plt
 import os
 
+# These additional codes are for testing my Dataset.py script
+from Dataset import GalaxyCNNDataSet
+from torch.utils.data import Dataset, DataLoader
+
+
 # print(transformer)
 
 image_path = "/Users/holyphysics/Desktop/Galaxy_Classification/ZCA_whitened_random_images/zca_0000.png"
@@ -35,6 +40,11 @@ image_augmentation = transformer.Compose(
                     transformer.RandomRotation(degrees=30)
                 ]
 )
+
+image_directory = "/Users/holyphysics/Desktop/Galaxy_Classification/rgb_training_data/Images"
+label_directory = "/Users/holyphysics/Desktop/Galaxy_Classification/rgb_training_data/Labels"
+
+training_dataset = GalaxyCNNDataSet(image_directory, label_directory, transform=image_augmentation)
 
 
 figure, axis = plt.subplots(1,2, figsize=(12.5,7.5))
